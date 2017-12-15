@@ -1,0 +1,28 @@
+{
+  "name": "s3dal",
+  "version": "1.0.0",
+  "description": "",
+  "main": "app.js",
+  "scripts": {
+    "start": "node ./app/bin/www"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/mhoaglund/S3PostDAL.git"
+  },
+  "author": "maxwell.hoaglund@gmail.com",
+  "license": "ISC",
+  "bugs": {
+    "url": "https://github.com/mhoaglund/S3PostDAL/issues"
+  },
+  "homepage": "https://github.com/mhoaglund/S3PostDAL#readme",
+  "dependencies": {
+    "aws-sdk": "^2.170.0",
+    "cookie-parser": "^1.4.3",
+    "express": "^4.16.2",
+    "morgan": "^1.9.0",
+    "multer": "^1.3.0",
+    "pug": "^2.0.0-rc.4",
+    "uuid": "^3.1.0"
+  }
+}
