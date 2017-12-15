@@ -10,6 +10,14 @@ var index = require('./routes/index');
 var users = require('./routes/users');
 var moment = require('./routes/moment');
 
+//config
+if(process.env.bucket){
+  _S3Bucket = process.env.bucket;
+}
+else{
+  nconf.file('./config.json');
+  _S3Bucket = nconf.get('bucket');
+}
 
 var app = express();
 
