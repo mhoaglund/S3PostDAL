@@ -4,11 +4,10 @@ var logger = require('morgan');
 var cookieParser = require('cookie-parser');
 var bodyParser = require('body-parser');
 var multer = require('multer');
-//var upload = require({dest:'uploads/'});
 
 var index = require('./routes/index');
 var users = require('./routes/users');
-var moment = require('./routes/moment');
+var upload = require('./routes/upload');
 
 //config
 if(process.env.bucket){
@@ -35,7 +34,7 @@ app.use(express.static(path.join(__dirname, 'public')));
 
 app.use('/', index);
 app.use('/users', users);
-app.use('/moment', moment);
+app.use('/upload', upload);
 
 // catch 404 and forward to error handler
 app.use(function(req, res, next) {
