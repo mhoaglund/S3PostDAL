@@ -1,22 +1,27 @@
+//config
+var nconf = require('nconf');
+if(process.env.bucket){
+  _OrgField = process.env.orgfield;
+  _S3Bucket = process.env.bucket;
+}
+else{
+  nconf.file('./app/config.json');
+  _OrgField = nconf.get('orgfield');
+  _S3Bucket = nconf.get('bucket');
+}
+
 var express = require('express');
 var path = require('path');
 var logger = require('morgan');
 var cookieParser = require('cookie-parser');
 var bodyParser = require('body-parser');
 var multer = require('multer');
+var multerS3 = require('multer-s3');
 
 var index = require('./routes/index');
 var users = require('./routes/users');
 var upload = require('./routes/upload');
 
-//config
-if(process.env.bucket){
-  _S3Bucket = process.env.bucket;
-}
-else{
-  nconf.file('./config.json');
-  _S3Bucket = nconf.get('bucket');
-}
 
 var app = express();
 

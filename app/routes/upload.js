@@ -2,13 +2,36 @@ var express = require('express');
 var router = express.Router();
 var multer  = require('multer')
 var upload = multer({ dest: 'uploads/' })
+var UUID = require('uuid')
+var AWS = require('aws-sdk');
+var multerS3 = require('multer-s3');
+var s3 = new AWS.S3();
 
 /* GET users listing. */
+s3share = multer({
+    storage: multerS3({
+      s3: s3,
+      bucket: _S3Bucket,
+      acl: 'public-read',
+      contentType: multerS3.AUTO_CONTENT_TYPE,
+      metadata: function (req, file, cb) {
+        cb(null, {fieldName: file.fieldname});
+      },
+      key: function (req, file, cb) {
+        cb(null, 'images/' + file.originalname)
+      }
+    })
+  })
 
-router.post('/', upload.single('file'), function (req, res, next) {
+router.post('/', s3share.single('file'), function (req, res, next) {
     console.log(req.file);  //TODO upload to S3
     console.log(req.body);  //TODO build json obj and upload to S3
-    uploadData(req.body);
+    uploadData(req.body, function(err){
+        if(err) res.send(err)
+        else{
+            res.send('Upload complete')
+        }
+    });
     if(req.file) uploadImage(req.file);
 })
 
@@ -18,15 +41,16 @@ router.get('/', function (req,res,next){
 
 function uploadImage(image){
     //TODO upload to S3
+    console.log(image);
 }
 
-function uploadData(data){
-    if(data.hasOwnProperty('momentproject')){
-        key = data['momentproject'] + "_" + UUID.v4();
+function uploadData(data, cb){
+    if(data[_OrgField]){
+        key = data[_OrgField] + "_" + UUID.v4();
     }
     else key = "EMPTY" + "_" + UUID.v4();
-    TidyData(event.queryStringParameters, function(packet){
-        var params = {Bucket: _S3Bucket, Key: key, Body: packet};
+    TidyData(data, function(packet){
+        var params = {Bucket: _S3Bucket, Key: key, Body: packet, acl: 'public-read'};
         s3.putObject(params, function(err){
             if(!err) {
                 var responseBody = "Entry created.";
@@ -37,8 +61,8 @@ function uploadData(data){
                     },
                     body: JSON.stringify(responseBody)
                 };
-                console.log('Good to go!');
-                res.send('Upload complete.');
+                console.log('Good to go!')
+                cb(responseBody)
             }
             else{
                 var responseBody = "Couldn't create entry. Something went wrong.";
@@ -50,7 +74,7 @@ function uploadData(data){
                     body: JSON.stringify(responseBody)
                 };
                 console.log('Error occurred: ' + err);
-                res.send('There was a problem with this upload. Please review your entries and try again.');
+                cb(responseBody)
             } 
         });
     });
@@ -59,7 +83,7 @@ function uploadData(data){
 function TidyData(query, callback){
     var packet = {};
     for (var property in query){
-        if(query.hasOwnProperty(property)){
+        if(query[property]){
             var arr = query[property].split(","); //break up CSLs
             if(arr.length > 1){
                 var newarr = [];
