@@ -50,7 +50,7 @@ function uploadData(data, cb){
     }
     else key = "EMPTY" + "_" + UUID.v4();
     TidyData(data, function(packet){
-        var params = {Bucket: _S3Bucket, Key: key, Body: packet, acl: 'public-read'};
+        var params = {Bucket: _S3Bucket, Key: key, Body: packet, ACL: 'public-read'};
         s3.putObject(params, function(err){
             if(!err) {
                 var responseBody = "Entry created.";
