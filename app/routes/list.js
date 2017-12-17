@@ -14,13 +14,7 @@ router.get('/', function(req, res, next) {
     if(req.query.project){
         params.Prefix = req.query.project + '_';
     }
-    if(req.query.itemid){
-        s3.getObject(params, function(err, data){
-
-        })
-    }
-    
-    s3.listObjects(params, function (err, data) {
+    s3.listObjectsV2(params, function (err, data) {
         if(err)callback(err)
         console.log(data)
         reply = data

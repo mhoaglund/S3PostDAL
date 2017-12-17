@@ -39,6 +39,10 @@ router.get('/', function (req,res,next){
     res.send('respond with a resource');
 })
 
+router.post('/org', function(req,res,next){
+    
+})
+
 function uploadImage(image){
     //TODO upload to S3
     console.log(image);

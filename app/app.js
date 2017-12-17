@@ -3,11 +3,15 @@ var nconf = require('nconf');
 if(process.env.bucket){
   _OrgField = process.env.orgfield;
   _S3Bucket = process.env.bucket;
+  _OrgMapKey = _OrgField + "map";
+  _MainKey = process.env.mainfile;
 }
 else{
   nconf.file('./app/config.json');
   _OrgField = nconf.get('orgfield');
   _S3Bucket = nconf.get('bucket');
+  _OrgMapKey = _OrgField + "map"; //array of possible options for organization field
+  _MainKey = nconf.get('mainfile');
 }
 
 var express = require('express');

@@ -17,6 +17,7 @@
   },
   "homepage": "https://github.com/mhoaglund/S3PostDAL#readme",
   "dependencies": {
+    "async": "^2.6.0",
     "aws-sdk": "^2.170.0",
     "cookie-parser": "^1.4.3",
     "express": "^4.16.2",
