@@ -21,7 +21,8 @@ var multerS3 = require('multer-s3');
 var index = require('./routes/index');
 var users = require('./routes/users');
 var upload = require('./routes/upload');
-
+var listitems = requrie('./routes/list');
+var retrieve = requrie('./routes/retrieve');
 
 var app = express();
 
@@ -40,6 +41,8 @@ app.use(express.static(path.join(__dirname, 'public')));
 app.use('/', index);
 app.use('/users', users);
 app.use('/upload', upload);
+app.use('/list', listitems);
+app.use('/retrieve', retrieve);
 
 // catch 404 and forward to error handler
 app.use(function(req, res, next) {
