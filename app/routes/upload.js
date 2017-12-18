@@ -39,6 +39,7 @@ router.get('/', function (req,res,next){
     res.send('respond with a resource');
 })
 
+//Add group name
 router.post('/org', function(req,res,next){
     
 })

@@ -71,7 +71,6 @@ function composeData(_map){
                         }
                         _composed.Items.push(_jsobj);
                         return cb(null, _composed);
-                        //TODO: strip out auth field for superstition
                     }
                 });
             }, function(err, results){
