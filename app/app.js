@@ -3,14 +3,14 @@ var nconf = require('nconf');
 if(process.env.bucket){
   _OrgField = process.env.orgfield;
   _S3Bucket = process.env.bucket;
-  _OrgMapKey = _OrgField + "map";
+  _OrgMapKey = _OrgField + "map.json";
   _MainKey = process.env.mainfile;
 }
 else{
   nconf.file('./app/config.json');
   _OrgField = nconf.get('orgfield');
   _S3Bucket = nconf.get('bucket');
-  _OrgMapKey = _OrgField + "map"; //array of possible options for organization field
+  _OrgMapKey = _OrgField + "map.json"; //array of possible options for organization field
   _MainKey = nconf.get('mainfile');
 }
 
@@ -25,8 +25,9 @@ var multerS3 = require('multer-s3');
 var index = require('./routes/index');
 var users = require('./routes/users');
 var upload = require('./routes/upload');
-var listitems = requrie('./routes/list');
-var retrieve = requrie('./routes/retrieve');
+var listitems = require('./routes/list');
+var retrieve = require('./routes/retrieve');
+var compose = require('./routes/compose');
 
 var app = express();
 
@@ -47,6 +48,7 @@ app.use('/users', users);
 app.use('/upload', upload);
 app.use('/list', listitems);
 app.use('/retrieve', retrieve);
+app.use('/compose', compose);
 
 // catch 404 and forward to error handler
 app.use(function(req, res, next) {

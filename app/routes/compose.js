@@ -3,6 +3,8 @@ var router = express.Router();
 var UUID = require('uuid')
 var AWS = require('aws-sdk');
 var s3 = new AWS.S3();
+var async = require('async');
+var _concated = {Groups:[]};
 
 /* Compose project data doc */
 router.get('/', function(req, res, next) {
@@ -26,7 +28,7 @@ function retrieveOrgMap(cb){
             return cb("Couldn't find group map file.", null)
         }
         else{
-            var _str = _moment.Body.toString('utf-8');
+            var _str = _mapfile.Body.toString('utf-8');
             var _jsobj = JSON.parse(_str);
             return cb(null, _jsobj['groups']);
         }
@@ -34,7 +36,7 @@ function retrieveOrgMap(cb){
 }
 function composeData(_map){
     async.filterSeries(_map, function(_group, callback){
-        getKeysForProject(_bucket, _group, function(_data){
+        getKeysForProject(_S3Bucket, _group, function(_data){
             if(_data == null){
                 console.log('skipping empty project: ' + _group);
                 return callback(null, null);
@@ -73,7 +75,7 @@ function composeData(_map){
                     }
                 });
             }, function(err, results){
-                _concated.Projects.push(_composed);
+                _concated.Groups.push(_composed);
                 return callback(null, _concated);
             });
         });
@@ -81,8 +83,8 @@ function composeData(_map){
     }, function(err, results){
         console.log(_concated);
         var params = {
-            Bucket: _bucket, 
-            Key: _MainKey, 
+            Bucket: _S3Bucket, 
+            Key: _MainKey + '.json', 
             ACL: 'public-read',
             Body: JSON.stringify(_concated),
             ContentType: 'application/json'
