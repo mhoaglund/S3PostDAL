@@ -5,6 +5,7 @@ if(process.env.bucket){
   _S3Bucket = process.env.bucket;
   _OrgMapKey = _OrgField + "map.json";
   _MainKey = process.env.mainfile;
+  _DiffKey = process.env.difffile;
 }
 else{
   nconf.file('./app/config.json');
@@ -12,6 +13,7 @@ else{
   _S3Bucket = nconf.get('bucket');
   _OrgMapKey = _OrgField + "map.json"; //array of possible options for organization field
   _MainKey = nconf.get('mainfile');
+  _DiffKey = nconf.get('difffile');
 }
 
 var express = require('express');
