@@ -24,15 +24,12 @@ s3share = multer({
   })
 
 router.post('/', s3share.single('file'), function (req, res, next) {
-    console.log(req.file);  //TODO upload to S3
-    console.log(req.body);  //TODO build json obj and upload to S3
     uploadData(req.body, function(err){
         if(err) res.send(err)
         else{
             res.send('Upload complete')
         }
     });
-    if(req.file) uploadImage(req.file);
 })
 
 router.get('/', function (req,res,next){
@@ -43,11 +40,6 @@ router.get('/', function (req,res,next){
 router.post('/org', function(req,res,next){
     
 })
-
-function uploadImage(image){
-    //TODO upload to S3
-    console.log(image);
-}
 
 function uploadData(data, cb){
     if(data[_OrgField]){
