@@ -5,6 +5,7 @@ if(process.env.bucket){
   _S3Bucket = process.env.bucket;
   _OrgMapKey = _OrgField + "map.json";
   _MainKey = process.env.mainfile;
+  _AllKey = process.env.allfile;
   _DiffKey = process.env.difffile;
 }
 else{
@@ -13,6 +14,7 @@ else{
   _S3Bucket = nconf.get('bucket');
   _OrgMapKey = _OrgField + "map.json"; //array of possible options for organization field
   _MainKey = nconf.get('mainfile');
+  _AllKey = nconf.get('allfile');
   _DiffKey = nconf.get('difffile');
 }
 
@@ -32,6 +34,8 @@ var retrieve = require('./routes/retrieve');
 var compose = require('./routes/compose');
 
 var app = express();
+
+//dp = DataProvider(process.env.sourcetype) etc.
 
 // view engine setup
 app.set('views', path.join(__dirname, 'views'));
