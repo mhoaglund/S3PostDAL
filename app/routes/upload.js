@@ -42,10 +42,13 @@ router.post('/org', function(req,res,next){
 })
 
 function uploadData(data, cb){
-    if(data[_OrgField]){
-        key = data[_OrgField] + "_" + UUID.v4();
+    if(!data['existing_id']){
+        if(data[_OrgField]){
+            key = data[_OrgField] + "_" + UUID.v4();
+        }
+        else key = "EMPTY" + "_" + UUID.v4();
     }
-    else key = "EMPTY" + "_" + UUID.v4();
+    else key = data['existing_id'];
     TidyData(data, function(packet){
         var params = {Bucket: _S3Bucket, Key: key, Body: packet, ACL: 'public-read'};
         s3.putObject(params, function(err){
