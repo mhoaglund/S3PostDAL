@@ -7,7 +7,6 @@ var async = require('async');
 var _concated = {Groups:[]};
 var _allconcat = {Groups:[]};
 var persistence = require('../persistence.js');
-var item_filter = new persistence.ItemFilter(_DiffKey, _dp.location)
 
 /* Compose project data doc */
 router.get('/', function(req, res, next) {
@@ -23,7 +22,7 @@ router.get('/', function(req, res, next) {
 });
 
 router.get('/remove', function(req, res, next) {
-    item_filter._add_item(req.query.itemid, false, function(msg){
+    _dp.itemfilter._add_item(req.query.itemid, false, function(msg){
         res.send(req.query.itemid + ": " + msg);
     })
 });
@@ -81,7 +80,7 @@ function composeData(_map, _cb){
                                     }
                                 }
                             }
-                            if(!_.find(item_filter.filter_buffer, {id:_obj.Key})){
+                            if(!_.find(_dp.itemfilter._filter_buffer, {id:_obj.Key})){
                                 _composed.Items.push(_jsobj);
                             }
                             _allitems.Items.push(_jsobj);
