@@ -4,6 +4,7 @@ var UUID = require('uuid')
 var AWS = require('aws-sdk');
 var s3 = new AWS.S3();
 var async = require('async');
+var _ = require('underscore')
 var _concated = {Groups:[]};
 var _allconcat = {Groups:[]};
 var persistence = require('../persistence.js');
@@ -14,8 +15,8 @@ router.get('/', function(req, res, next) {
         if(msg){
              res.send(msg)
         } else{
-            composeData(orgmap, function(){
-
+            composeData(orgmap, function(reply){
+                res.send(reply)
             })
         }
     })
@@ -109,7 +110,7 @@ function composeData(_map, _cb){
                         policy: 'public-read',
                         content_type: 'application/json'
                     }, function(){
-                        _cb('All done!')
+                        _cb('Project data has been composed and saved.')
                     })  
             })
 

@@ -37,9 +37,9 @@ class DataProvider{
             this.imageprefix = _configdata.imageprefix
             this.mainfile = _configdata.mainfile
             this.all_data = _configdata.all_data
-            this.diff_file = _configdata.difffile
+            this.diff = _configdata.difffile //For mysql we could just have a second table with blacklisted ids
             this.keyfield = _configdata.keyfield
-            this.orgfield = _configdata.orgfield
+            this.orgfield = _configdata.orgfield //Another separate table here.
             this.isconnected = true //TODO verify s3 connection by checking whether our bucket exists
         }
         if(!validsource){
@@ -50,12 +50,12 @@ class DataProvider{
         }   
         this.itemfilter = {
             _self: this,
-            _filter_key: this.diff_file, //gotta make sure the score is right here
+            _filter_key: this.diff, //gotta make sure the score is right here
             _is_in_sync: false,
             _filter_buffer: [],
             _refresh_my_copy: function(){
                 if(this.stype == 's3'){
-                    s3.getObject(_myparams, function(err, _filterfile){
+                    this.datahandler.getObject(_myparams, function(err, _filterfile){
                         if (err){
                             console.log(err, err.stack);
                             _filter_buffer = []
@@ -78,7 +78,7 @@ class DataProvider{
                 if(this.stype == 's3'){
                     var packet = JSON.stringify(_filter_buffer, null, 4)
                     var params = {Bucket: _self.location, Key: _filter_key, Body: packet, ACL: 'public-read'};
-                    s3.putObject(params, function(err){
+                    this.datahandler.putObject(params, function(err){
                         if(!err) {
                             cb("Filter updated.")
                         }
@@ -139,7 +139,7 @@ class DataProvider{
                 Bucket: ((_item.bucket) ? _item.bucket : this.location), 
                 Key: _item.key, 
             }
-            s3.getObject(params, function(err){
+            this.datahandler.getObject(params, function(err){
                 if (err){
                     cb('Item not found.')
                 }
@@ -177,7 +177,7 @@ class DataProvider{
                 ACL: _item.policy,
                 ContentType: _item.content_type
             }
-            s3.putObject(params, function(err){
+            this.datahandler.putObject(params, function(err){
                 if(!err) {
                     cb("Successfully added item to bucket.")
                 }
@@ -213,7 +213,7 @@ class DataProvider{
                 Body: _item.body, 
                 ACL: _item.policy
             }
-            s3.putObject(params, function(err){
+            this.datahandler.putObject(params, function(err){
                 if(!err) {
                     cb("Successfully updated item in bucket.")
                 }

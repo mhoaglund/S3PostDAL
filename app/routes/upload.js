@@ -7,7 +7,7 @@ var AWS = require('aws-sdk');
 var multerS3 = require('multer-s3');
 var s3 = new AWS.S3();
 
-if(_dp.sourcetype == 's3'){
+if(_dp.stype == 's3'){
     s3share = multer({
         storage: multerS3({
           s3: s3,
@@ -55,8 +55,8 @@ router.post('/org', function(req,res,next){
 function uploadData(data, cb){
     var updating = false;
     if(!data['existing_id']){
-        if(data[_dp._orgfield]){
-            itemid = data[_dp._orgfield] + "_" + UUID.v4();
+        if(data[_dp.orgfield]){
+            itemid = data[_dp.orgfield] + "_" + UUID.v4();
         }
         else itemid = "EMPTY" + "_" + UUID.v4();
     }
