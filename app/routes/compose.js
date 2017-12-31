@@ -7,7 +7,7 @@ var async = require('async');
 var _concated = {Groups:[]};
 var _allconcat = {Groups:[]};
 var persistence = require('../persistence.js');
-var item_filter = new persistence.ItemFilter(_DiffKey)
+var item_filter = new persistence.ItemFilter(_DiffKey, _dp.location)
 
 /* Compose project data doc */
 router.get('/', function(req, res, next) {
@@ -15,7 +15,9 @@ router.get('/', function(req, res, next) {
         if(msg){
              res.send(msg)
         } else{
-            composeData(orgmap)
+            composeData(orgmap, function(){
+
+            })
         }
     })
 });
@@ -28,7 +30,7 @@ router.get('/remove', function(req, res, next) {
 
 function retrieveOrgMap(cb){
     var _myparams = {
-        Bucket: _S3Bucket,
+        Bucket: _dp.location,
         Key: _OrgMapKey
     };
     s3.getObject(_myparams, function(err, _mapfile){
@@ -43,9 +45,9 @@ function retrieveOrgMap(cb){
         }
     })
 }
-function composeData(_map){
+function composeData(_map, _cb){
     async.filterSeries(_map, function(_group, callback){
-        getKeysForProject(_S3Bucket, _group, function(_data){
+        getKeysForProject(_dp.location, _group, function(_data){
             if(_data == null){
                 console.log('skipping empty project: ' + _group);
                 return callback(null, null);
@@ -54,7 +56,7 @@ function composeData(_map){
             var _allitems = {Group:_group, Items:[]}
             async.filter(_data, function(_obj, cb){
                 var _myparams = {
-                    Bucket: _S3Bucket,
+                    Bucket: _dp.location,
                     Key: _obj.Key
                 };
                     s3.getObject(_myparams, function(err, _item) {
@@ -94,69 +96,24 @@ function composeData(_map){
         });
         
     }, function(err, results){
-        console.log(_concated);
-        var params = {
-            Bucket: _S3Bucket, 
-            Key: _MainKey + '.json', 
-            ACL: 'public-read',
-            Body: JSON.stringify(_concated),
-            ContentType: 'application/json'
-        };
-        s3.putObject(params, function(err){
-            if(!err) {
-                var responseBody = "Entry created.";
-                var response = {
-                    statusCode: 200,
-                    headers: {
-                        "Content-Type" : "application/javascript"
-                    },
-                    body: JSON.stringify(responseBody)
-                };
-                console.log('Good to go!');
-            }
-            else{
-                var responseBody = "Couldn't create entry. Something went wrong.";
-                var response = {
-                    statusCode: 200,
-                    headers: {
-                        "Content-Type" : "application/javascript"
-                    },
-                    body: JSON.stringify(responseBody)
-                };
-                console.log('Error occurred: ' + err);
-            } 
-        });
-        var params_all = {
-            Bucket: _S3Bucket, 
-            Key: _MainKey + '.json', 
-            ACL: 'public-read',
-            Body: JSON.stringify(_allconcat),
-            ContentType: 'application/json'
-        };
-        s3.putObject(params_all, function(err){
-            if(!err) {
-                var responseBody = "Entry created.";
-                var response = {
-                    statusCode: 200,
-                    headers: {
-                        "Content-Type" : "application/javascript"
-                    },
-                    body: JSON.stringify(responseBody)
-                };
-                console.log('Good to go!');
-            }
-            else{
-                var responseBody = "Couldn't create entry. Something went wrong.";
-                var response = {
-                    statusCode: 200,
-                    headers: {
-                        "Content-Type" : "application/javascript"
-                    },
-                    body: JSON.stringify(responseBody)
-                };
-                console.log('Error occurred: ' + err);
-            } 
-        });
+        //Write working subset of items
+        _dp._write_item(
+            {   key: _dp.mainfile + '.json', 
+                body: JSON.stringify(_concated), 
+                policy: 'public-read',
+                content_type: 'application/json'
+            }, function(){
+                //Write all data file
+                _dp._write_item(
+                    {   key: _dp.all_data + '.json', 
+                        body: JSON.stringify(_allconcat), 
+                        policy: 'public-read',
+                        content_type: 'application/json'
+                    }, function(){
+                        _cb('All done!')
+                    })  
+            })
+
     });
 }
 

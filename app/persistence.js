@@ -5,12 +5,12 @@ var _ = require('underscore')
 
 //Manages an item filter implemented in a JSON file in S3.
 class ItemFilter{
-    constructor(_key){
+    constructor(_key, _bucket){
         this.key = _key;
         this.filter_buffer = []
         this.is_in_sync = false;
         var _myparams = {
-            Bucket: _S3Bucket,
+            Bucket: _bucket,
             Key: _key
         };
         
@@ -33,7 +33,7 @@ class ItemFilter{
     _write_my_copy(cb){
         if(!is_in_sync) return;
         var packet = JSON.stringify(this.filter_buffer, null, 4)
-        var params = {Bucket: _S3Bucket, Key: this.key, Body: packet, ACL: 'public-read'};
+        var params = {Bucket: _bucket, Key: this.key, Body: packet, ACL: 'public-read'};
         s3.putObject(params, function(err){
             if(!err) {
                 cb("Filter updated.")

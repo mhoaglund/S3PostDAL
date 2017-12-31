@@ -7,7 +7,7 @@ var s3 = new AWS.S3();
 /* GET listing of bucket contents. */
 router.get('/', function(req, res, next) {
     var params = {
-        Bucket: _S3Bucket,
+        Bucket: _dp.location,
         Delimiter: '/',
         Prefix: ''
     }

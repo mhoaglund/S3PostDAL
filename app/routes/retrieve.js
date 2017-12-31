@@ -8,7 +8,7 @@ var s3 = new AWS.S3();
 router.get('/', function(req, res, next) {
     if(req.query.itemid){
         var params = {
-            Bucket: _S3Bucket,
+            Bucket: _dp.location,
             Kwy: req.query.itemid
         }
         s3.getObject(params, function(err, data){

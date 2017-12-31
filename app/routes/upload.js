@@ -7,30 +7,41 @@ var AWS = require('aws-sdk');
 var multerS3 = require('multer-s3');
 var s3 = new AWS.S3();
 
-//This is an issue with the mysql mode. Gotta figure out a replacement.
-s3share = multer({
-    storage: multerS3({
-      s3: s3,
-      bucket: _S3Bucket,
-      acl: 'public-read',
-      contentType: multerS3.AUTO_CONTENT_TYPE,
-      metadata: function (req, file, cb) {
-        cb(null, {fieldName: file.fieldname});
-      },
-      key: function (req, file, cb) {
-        cb(null, 'images/' + file.originalname)
-      }
+if(_dp.sourcetype == 's3'){
+    s3share = multer({
+        storage: multerS3({
+          s3: s3,
+          bucket: _dp.location,
+          acl: 'public-read',
+          contentType: multerS3.AUTO_CONTENT_TYPE,
+          metadata: function (req, file, cb) {
+            cb(null, {fieldName: file.fieldname});
+          },
+          key: function (req, file, cb) {
+            cb(null, _dp.imageprefix + file.originalname)
+          }
+        })
     })
-  })
+    router.post('/', s3share.single('file'), function (req, res, next) {
+        uploadData(req.body, function(err){
+            if(err) res.send(err)
+            else{
+                res.send('Upload complete')
+            }
+        });
+    })
+} else {
+    //TODO: just implement a vanilla multer thing here and add an image upload handler to the dataprovider.
+    router.post('/', function (req, res, next) {
+        uploadData(req.body, function(err){
+            if(err) res.send(err)
+            else{
+                res.send('Upload complete')
+            }
+        });
+    })
+}
 
-router.post('/', s3share.single('file'), function (req, res, next) {
-    uploadData(req.body, function(err){
-        if(err) res.send(err)
-        else{
-            res.send('Upload complete')
-        }
-    });
-})
 
 router.get('/', function (req,res,next){
     res.send('respond with a resource');
@@ -44,8 +55,8 @@ router.post('/org', function(req,res,next){
 function uploadData(data, cb){
     var updating = false;
     if(!data['existing_id']){
-        if(data[_OrgField]){
-            itemid = data[_OrgField] + "_" + UUID.v4();
+        if(data[_dp._orgfield]){
+            itemid = data[_dp._orgfield] + "_" + UUID.v4();
         }
         else itemid = "EMPTY" + "_" + UUID.v4();
     }
@@ -54,14 +65,13 @@ function uploadData(data, cb){
         itemid = data['existing_id'];
     }
     TidyData(data, function(packet){
-        var new_params = {key: itemid, body: packet, ACL: 'public-read'}
         if(updating){
-            _dp._update_item(new_params, function(reply){
+            _dp._update_item({key: itemid, body: packet, ACL: 'public-read'}, function(reply){
                 cb(reply)
             })
         }
         else{
-            _dp._write_item(new_params, function(reply){
+            _dp._write_item({key: itemid, body: packet, ACL: 'public-read'}, function(reply){
                 cb(reply)
             })
         }

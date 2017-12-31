@@ -24,6 +24,8 @@ class DataProvider{
                 console.log('mysql connection open')
                 this.isconnected = true
             })
+            this.keyfield = _configdata.keyfield
+            this.orgfield = _configdata.orgfield
             this.location = _configdata.defaulttable
         }
         if(_configdata.sourcetype == 's3'){
@@ -74,7 +76,8 @@ class DataProvider{
                 Bucket: ((_item.bucket) ? _item.bucket : this.location), 
                 Key: _item.key, 
                 Body: _item.body, 
-                ACL: _item.policy
+                ACL: _item.policy,
+                ContentType: _item.content_type
             }
             s3.putObject(params, function(err){
                 if(!err) {
