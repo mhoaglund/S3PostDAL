@@ -6,7 +6,8 @@ class DataProvider{
         this.datahandler = null
         this.stype = _configdata.sourcetype
         this.isconnected = false
-        if(_configdata.sourcetype = 'mysql'){
+        this.location = null
+        if(_configdata.sourcetype == 'mysql'){
             validsource = true
             var mysql = require('mysql');
             this.datahandler = mysql.createConnection({
@@ -18,17 +19,18 @@ class DataProvider{
             });
             this.datahandler.connect(function(err){
                 if (err) {
-                    reply = 'error connecting: ' + err.stack
-                    console.log(reply)
+                    console.log('error connecting: ' + err.stack)
                 }
                 console.log('mysql connection open')
                 this.isconnected = true
             })
+            this.location = _configdata.defaulttable
         }
-        if(_configdata.sourcetype = 's3'){
+        if(_configdata.sourcetype == 's3'){
             validsource = true
             var AWS = require('aws-sdk');
             this.datahandler = new AWS.S3();
+            this.location = _configdata.bucket
             this.isconnected = true //TODO verify s3 connection by checking whether our bucket exists
         }
         if(!validsource){
@@ -41,14 +43,15 @@ class DataProvider{
     _set_max(_max){
 
     }
-    
+
     //If we're mysql, insert a row. If we're s3, putobject.
     //Returns a string.
     //Item: {location: '', key: '', body: {}, policy: '' (maybe just null for mysql?)}
     _write_item(_item, cb){
         if(this.stype == 'mysql'){
             body.id = _item.key
-            var query = this.datahandler.query('INSERT INTO' + _item.location + ' SET ?', body,
+            var target_location = (_item.location) ? _item.location : this.defaulttable
+            var query = this.datahandler.query('INSERT INTO' + target_location + ' SET ?', body,
                 function(err, result) {
                     if(!err) {
                         console.log(err.stack)
@@ -62,7 +65,7 @@ class DataProvider{
         }
         if(this.stype == 's3'){
             var params = {
-                Bucket: _item.location, 
+                Bucket: ((_item.bucket) ? _item.bucket : this.location), 
                 Key: _item.key, 
                 Body: _item.body, 
                 ACL: _item.policy
@@ -83,7 +86,8 @@ class DataProvider{
         if(this.stype == 'mysql'){
             var values = []
             var qitems = _unzip(_item.body, ' = ?, ')
-            var query = this.datahandler.query('UPDATE ' + _item.location + ' SET ' + qitems['props'] + ' WHERE id=' + _item.key, qitems['vals'],
+            var target_location = (_item.location) ? _item.location : this.defaulttable
+            var query = this.datahandler.query('UPDATE ' + target_location + ' SET ' + qitems['props'] + ' WHERE id=' + _item.key, qitems['vals'],
                 function(err, result) {
                     if(!err) {
                         console.log(err.stack)
@@ -97,7 +101,7 @@ class DataProvider{
         }
         if(this.stype == 's3'){
             var params = {
-                Bucket: _item.location, 
+                Bucket: ((_item.bucket) ? _item.bucket : this.location), 
                 Key: _item.key, 
                 Body: _item.body, 
                 ACL: _item.policy
