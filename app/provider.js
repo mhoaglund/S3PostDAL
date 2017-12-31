@@ -31,6 +31,12 @@ class DataProvider{
             var AWS = require('aws-sdk');
             this.datahandler = new AWS.S3();
             this.location = _configdata.bucket
+            this.imageprefix = _configdata.imageprefix
+            this.mainfile = _configdata.mainfile
+            this.all_data = _configdata.all_data
+            this.diff_file = _configdata.difffile
+            this.keyfield = _configdata.keyfield
+            this.orgfield = _configdata.orgfield
             this.isconnected = true //TODO verify s3 connection by checking whether our bucket exists
         }
         if(!validsource){

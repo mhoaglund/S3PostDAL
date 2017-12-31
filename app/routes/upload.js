@@ -7,7 +7,7 @@ var AWS = require('aws-sdk');
 var multerS3 = require('multer-s3');
 var s3 = new AWS.S3();
 
-/* GET users listing. */
+//This is an issue with the mysql mode. Gotta figure out a replacement.
 s3share = multer({
     storage: multerS3({
       s3: s3,
@@ -42,41 +42,29 @@ router.post('/org', function(req,res,next){
 })
 
 function uploadData(data, cb){
+    var updating = false;
     if(!data['existing_id']){
         if(data[_OrgField]){
-            key = data[_OrgField] + "_" + UUID.v4();
+            itemid = data[_OrgField] + "_" + UUID.v4();
         }
-        else key = "EMPTY" + "_" + UUID.v4();
+        else itemid = "EMPTY" + "_" + UUID.v4();
     }
-    else key = data['existing_id'];
+    else {
+        updating = true;
+        itemid = data['existing_id'];
+    }
     TidyData(data, function(packet){
-        var params = {Bucket: _S3Bucket, Key: key, Body: packet, ACL: 'public-read'};
-        s3.putObject(params, function(err){
-            if(!err) {
-                var responseBody = "Entry created.";
-                var response = {
-                    statusCode: 200,
-                    headers: {
-                        "Content-Type" : "application/javascript"
-                    },
-                    body: JSON.stringify(responseBody)
-                };
-                console.log('Good to go!')
-                cb(responseBody)
-            }
-            else{
-                var responseBody = "Couldn't create entry. Something went wrong.";
-                var response = {
-                    statusCode: 200,
-                    headers: {
-                        "Content-Type" : "application/javascript"
-                    },
-                    body: JSON.stringify(responseBody)
-                };
-                console.log('Error occurred: ' + err);
-                cb(responseBody)
-            } 
-        });
+        var new_params = {key: itemid, body: packet, ACL: 'public-read'}
+        if(updating){
+            _dp._update_item(new_params, function(reply){
+                cb(reply)
+            })
+        }
+        else{
+            _dp._write_item(new_params, function(reply){
+                cb(reply)
+            })
+        }
     });
 }
 

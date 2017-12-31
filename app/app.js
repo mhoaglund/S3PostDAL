@@ -11,8 +11,6 @@ if(process.env.bucket){
 }
 else{
   nconf.file('./app/config_alt.json');
-  var fs = require('fs');
-  var dpconfig = JSON.parse(fs.readFileSync('./app/config_alt.json', 'utf8'));
   //gotta figure out these globals now
   _OrgField = nconf.get('orgfield');
   _S3Bucket = nconf.get('bucket');
@@ -20,8 +18,11 @@ else{
   _MainKey = nconf.get('mainfile');
   _AllKey = nconf.get('allfile');
   _DiffKey = nconf.get('difffile');
-  dp = new provider.DataProvider(dpconfig)
 }
+
+var fs = require('fs');
+var dpconfig = JSON.parse(fs.readFileSync('./app/config_alt.json', 'utf8'));
+_dp = new provider.DataProvider(dpconfig)
 
 var express = require('express');
 var path = require('path');
