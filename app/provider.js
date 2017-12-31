@@ -81,7 +81,7 @@ class DataProvider{
                 if(!this._is_in_sync) return;
                 if(self._self_type == 's3'){
                     var packet = JSON.stringify(self._filter_buffer, null, 4)
-                    var params = {Bucket: self._parent.location, Key: self._filter_key, Body: packet, ACL: 'public-read'};
+                    var params = {Bucket: self._parent.location, Key: self._parent.diff+'.json', Body: packet, ACL: 'public-read'};
                     self._parent.datahandler.putObject(params, function(err){
                         if(!err) {
                             cb("Filter updated.")

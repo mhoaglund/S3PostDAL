@@ -95,8 +95,13 @@ function composeData(_map, _cb){
                         }
                     });
             }, function(err, results){
-                _concated.Groups.push(_composed);
-                _allconcat.Groups.push(_allitems);
+                //Without these ifs, we end up with strange copies all over the place. TODO fix.
+                if(!_.find(_concated.Groups, {Group:_composed.Group})){
+                    _concated.Groups.push(_composed);
+                }
+                if(!_.find(_allconcat.Groups, {Group:_allitems.Group})){
+                    _allconcat.Groups.push(_allitems);
+                }
                 return callback(null, _concated, _allconcat);
             });
         });
