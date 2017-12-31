@@ -23,7 +23,7 @@ router.get('/', function(req, res, next) {
 });
 
 router.get('/remove', function(req, res, next) {
-    _dp.itemfilter._add_item(req.query.itemid, false, function(msg){
+    _dp.itemfilter._add_item(req.query.itemid, true, function(msg){
         res.send(req.query.itemid + ": " + msg);
     })
 });

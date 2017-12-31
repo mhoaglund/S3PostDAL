@@ -1,4 +1,5 @@
 //TODO: flesh out data provider module so we can switch out S3 and MySQL and retain the same simple grouping logic.
+var _ = require('underscore')
 
 class DataProvider{
     constructor(_configdata){
@@ -49,36 +50,39 @@ class DataProvider{
             this.mode = _configdata.sourcetype
         }   
         this.itemfilter = {
-            _self: this,
+            _parent: this,
+            _self_type: this.stype,
             _filter_key: this.diff, //gotta make sure the score is right here
-            _is_in_sync: false,
+            _is_in_sync: true,
             _filter_buffer: [],
             _refresh_my_copy: function(){
-                if(this.stype == 's3'){
-                    this.datahandler.getObject(_myparams, function(err, _filterfile){
+                var self = this;
+                if(self._self_type == 's3'){
+                    self._parent.datahandler.getObject({Bucket: self._parent.location, Key: self._parent.diff+'.json'}, function(err, _filterfile){
                         if (err){
                             console.log(err, err.stack);
-                            _filter_buffer = []
+                            self._filter_buffer = []
                         }
                         else{
                             var _str = _filterfile.Body.toString('utf-8');
                             var _jsobj = JSON.parse(_str);
-                            _filter_buffer = _jsobj['items'];
-                            _is_in_sync = true;
+                            self._filter_buffer = _jsobj['items'];
+                            self._is_in_sync = true;
                         }
                     })
                 }
-                if(this.stype == 'mysql'){
+                if(self._self_type == 'mysql'){
                     //TODO: figure out the implementation here.
                     return;
                 }
             },
             _write_my_copy: function(cb){
-                if(!is_in_sync) return;
-                if(this.stype == 's3'){
-                    var packet = JSON.stringify(_filter_buffer, null, 4)
-                    var params = {Bucket: _self.location, Key: _filter_key, Body: packet, ACL: 'public-read'};
-                    this.datahandler.putObject(params, function(err){
+                var self = this;
+                if(!this._is_in_sync) return;
+                if(self._self_type == 's3'){
+                    var packet = JSON.stringify(self._filter_buffer, null, 4)
+                    var params = {Bucket: self._parent.location, Key: self._filter_key, Body: packet, ACL: 'public-read'};
+                    self._parent.datahandler.putObject(params, function(err){
                         if(!err) {
                             cb("Filter updated.")
                         }
@@ -87,32 +91,39 @@ class DataProvider{
                         } 
                     });
                 }
-                if(this.stype == 'mysql'){
+                if(self._self_type == 'mysql'){
                     //TODO: figure out the implementation here.
                     return;
                 }
             },
             _add_item: function(itemid, recompose, cb){
+                var self = this;
                 if(itemid == null) {
-                    this._write_my_copy(function(msg){
+                    self._write_my_copy(function(msg){
                         console.log(msg);
                         cb("Recompiling filter...")
                         return;
                     })
                 }
-                if(_.find(_filter_buffer, {id:itemid})){
-                    cb("Item already appears in filter.")
-                    return;
+                else{
+                    if(_.find(this._filter_buffer, {id:itemid})){
+                        console.log("Item already appears in filter.")
+                        cb("Item already appears in filter.")
+                        return;
+                    }
+                    this._filter_buffer.push({'id':itemid})
+                    if(recompose) {self._write_my_copy(function(msg){ //can we scope to that?
+                        console.log(msg);
+                        cb("Item added to filter. Recompiling filter...")
+                        return;
+                    })
                 }
-                _filter_buffer.push({'id':itemid})
-                if(recompose) this._write_my_copy(function(msg){ //can we scope to that?
-                    console.log(msg);
-                    cb("Item added to filter. Recompiling filter...")
-                    return;
-                })
-                cb("Item added to filter.")
+                    else cb("Item added to filter.")
+                }
+
             }
         }
+        this.itemfilter._refresh_my_copy();
     }
 
     _set_max(_max){
