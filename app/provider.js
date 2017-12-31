@@ -2,6 +2,7 @@
 
 class DataProvider{
     constructor(_configdata){
+        //TODO: move itemfilter into dataprovider.
         var validsource = false
         this.datahandler = null
         this.stype = _configdata.sourcetype
@@ -46,10 +47,107 @@ class DataProvider{
         }else{
             this.maxkeys = 1000
             this.mode = _configdata.sourcetype
-        }       
+        }   
+        this.itemfilter = {
+            _self: this,
+            _filter_key: this.diff_file, //gotta make sure the score is right here
+            _is_in_sync: false,
+            _filter_buffer: [],
+            _refresh_my_copy: function(){
+                if(this.stype == 's3'){
+                    s3.getObject(_myparams, function(err, _filterfile){
+                        if (err){
+                            console.log(err, err.stack);
+                            _filter_buffer = []
+                        }
+                        else{
+                            var _str = _filterfile.Body.toString('utf-8');
+                            var _jsobj = JSON.parse(_str);
+                            _filter_buffer = _jsobj['items'];
+                            _is_in_sync = true;
+                        }
+                    })
+                }
+                if(this.stype == 'mysql'){
+                    //TODO: figure out the implementation here.
+                    return;
+                }
+            },
+            _write_my_copy: function(cb){
+                if(!is_in_sync) return;
+                if(this.stype == 's3'){
+                    var packet = JSON.stringify(_filter_buffer, null, 4)
+                    var params = {Bucket: _self.location, Key: _filter_key, Body: packet, ACL: 'public-read'};
+                    s3.putObject(params, function(err){
+                        if(!err) {
+                            cb("Filter updated.")
+                        }
+                        else{
+                            cb("Filter failed to update.")
+                        } 
+                    });
+                }
+                if(this.stype == 'mysql'){
+                    //TODO: figure out the implementation here.
+                    return;
+                }
+            },
+            _add_item: function(itemid, recompose, cb){
+                if(itemid == null) {
+                    this._write_my_copy(function(msg){
+                        console.log(msg);
+                        cb("Recompiling filter...")
+                        return;
+                    })
+                }
+                if(_.find(_filter_buffer, {id:itemid})){
+                    cb("Item already appears in filter.")
+                    return;
+                }
+                _filter_buffer.push({'id':itemid})
+                if(recompose) this._write_my_copy(function(msg){ //can we scope to that?
+                    console.log(msg);
+                    cb("Item added to filter. Recompiling filter...")
+                    return;
+                })
+                cb("Item added to filter.")
+            }
+        }
     }
+
     _set_max(_max){
 
+    }
+
+    //Getobject if we're using s3, select a row if we're using mysql
+    _get_item(_item, cb){
+        if(this.stype == 'mysql'){
+            var query = this.datahandler.query('SELECT * FROM' + target_location + ' WHERE ' + this.keyfield + '=' + _item.key,
+            function(err, result) {
+                if(!err) {
+                    console.log(err.stack)
+                    cb('Unable to find item. ' + err.stack)
+                }
+                else {
+                    console.log(result)
+                    cb(JSON.stringify(result))
+                }
+            });
+        }
+        if(this.stype == 's3'){
+            var params = {
+                Bucket: ((_item.bucket) ? _item.bucket : this.location), 
+                Key: _item.key, 
+            }
+            s3.getObject(params, function(err){
+                if (err){
+                    cb('Item not found.')
+                }
+                else{
+                    cb(JSON.stringify(data))
+                }
+            })
+        }
     }
 
     //If we're mysql, insert a row. If we're s3, putobject.
