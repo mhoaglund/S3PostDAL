@@ -120,6 +120,31 @@ class DataProvider{
                 }
                     else cb("Item added to filter.")
                 }
+            },
+            _remove_item: function(itemid, recompose, cb){
+                var self = this;
+                if(itemid == null) {
+                    self._write_my_copy(function(msg){
+                        console.log(msg);
+                        cb("Recompiling filter...")
+                        return;
+                    })
+                }
+                else{
+                    if(!_.find(this._filter_buffer, {id:itemid})){
+                        console.log("Item does not appear in filter.")
+                        cb("Item does not appear in filter.")
+                        return;
+                    }
+                    this._filter_buffer = _.reject(this._filter_buffer, {id:itemid})
+                    if(recompose) {self._write_my_copy(function(msg){ //can we scope to that?
+                        console.log(msg);
+                        cb("Item added to filter. Recompiling filter...")
+                        return;
+                    })
+                }
+                    else cb("Item added to filter.")
+                }
 
             }
         }

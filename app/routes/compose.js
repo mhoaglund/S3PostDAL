@@ -28,6 +28,12 @@ router.get('/remove', function(req, res, next) {
     })
 });
 
+router.get('/reinstate', function(req, res, next) {
+    _dp.itemfilter._remove_item(req.query.itemid, true, function(msg){
+        res.send(req.query.itemid + ": " + msg);
+    })
+});
+
 function retrieveOrgMap(cb){
     var _myparams = {
         Bucket: _dp.location,
