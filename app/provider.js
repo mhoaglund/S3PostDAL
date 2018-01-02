@@ -63,7 +63,7 @@ class DataProvider{
                 if(self._self_type == 'mysql') _item = {location: self._parent.settingstable, key: self._parent.diff}
                 self._parent._get_item(_item, function(data, err){
                     if(!err){
-                        var _str = _filterfile.Body.toString('utf-8');
+                        var _str = data.toString('utf-8');
                         var _jsobj = JSON.parse(_str);
                         self._filter_buffer = _jsobj['items'];
                         self._is_in_sync = true;
@@ -174,7 +174,7 @@ class DataProvider{
                 Bucket: ((_item.bucket) ? _item.bucket : this.location), 
                 Key: _item.key, 
             }
-            this.datahandler.getObject(params, function(err){
+            this.datahandler.getObject(params, function(err, data){
                 if (err){
                     cb('Item not found.', err.stack)
                 }
