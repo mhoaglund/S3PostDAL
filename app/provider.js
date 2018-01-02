@@ -137,7 +137,7 @@ class DataProvider{
                         cb("Item does not appear in filter.")
                         return;
                     }
-                    this._filter_buffer = _.reject(this._filter_buffer, itemid)
+                    this._filter_buffer = _.without(this._filter_buffer, itemid)
                     if(recompose) {self._write_my_copy(function(msg){ //can we scope to that?
                         console.log(msg);
                         cb("Item added to filter. Recompiling filter...")
