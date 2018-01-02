@@ -1,6 +1,6 @@
 {
     "items":[
-        {"id":"Key1"},
-        {"id":"Key2"}
+        "Key1",
+        "Key2"
     ]
 }

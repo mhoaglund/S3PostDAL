@@ -104,12 +104,12 @@ class DataProvider{
                     })
                 }
                 else{
-                    if(_.find(this._filter_buffer, {id:itemid})){
+                    if(_.find(this._filter_buffer, itemid)){
                         console.log("Item already appears in filter.")
                         cb("Item already appears in filter.")
                         return;
                     }
-                    this._filter_buffer.push({'id':itemid})
+                    this._filter_buffer.push(itemid)
                     if(recompose) {self._write_my_copy(function(msg){ //can we scope to that?
                         console.log(msg);
                         cb("Item added to filter. Recompiling filter...")
@@ -129,12 +129,12 @@ class DataProvider{
                     })
                 }
                 else{
-                    if(!_.find(this._filter_buffer, {id:itemid})){
+                    if(!_.find(this._filter_buffer, itemid)){
                         console.log("Item does not appear in filter.")
                         cb("Item does not appear in filter.")
                         return;
                     }
-                    this._filter_buffer = _.reject(this._filter_buffer, {id:itemid})
+                    this._filter_buffer = _.reject(this._filter_buffer, itemid)
                     if(recompose) {self._write_my_copy(function(msg){ //can we scope to that?
                         console.log(msg);
                         cb("Item added to filter. Recompiling filter...")
