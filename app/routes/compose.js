@@ -87,7 +87,7 @@ function composeData(_map, _cb){
                                     }
                                 }
                             }
-                            if(!_.find(_dp.itemfilter._filter_buffer, {id:_obj.Key})){
+                            if(!_.contains(_dp.itemfilter._filter_buffer, _obj.Key)){
                                 _composed.Items.push(_jsobj);
                             }
                             _allitems.Items.push(_jsobj);

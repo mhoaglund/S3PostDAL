@@ -81,8 +81,8 @@ class DataProvider{
                 var self = this;
                 if(!this._is_in_sync) return;
                 if(self._self_type == 's3'){
-                    var packet = JSON.stringify(self._filter_buffer, null, 4)
-                    var params = {Bucket: self._parent.location, Key: self._parent.diff+'.json', Body: packet, ACL: 'public-read'};
+                    var packet = JSON.stringify({"items":self._filter_buffer}, null, 4)
+                    var params = {Bucket: self._parent.location, Key: self._parent.diff, Body: packet, ACL: 'public-read'};
                     self._parent.datahandler.putObject(params, function(err){
                         if(!err) {
                             cb("Filter updated.")
@@ -107,7 +107,7 @@ class DataProvider{
                     })
                 }
                 else{
-                    if(_.find(this._filter_buffer, itemid)){
+                    if(_.contains(this._filter_buffer, itemid)){
                         console.log("Item already appears in filter.")
                         cb("Item already appears in filter.")
                         return;
@@ -132,7 +132,7 @@ class DataProvider{
                     })
                 }
                 else{
-                    if(!_.find(this._filter_buffer, itemid)){
+                    if(!_.contains(this._filter_buffer, itemid)){
                         console.log("Item does not appear in filter.")
                         cb("Item does not appear in filter.")
                         return;
