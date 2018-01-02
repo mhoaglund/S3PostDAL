@@ -29,6 +29,7 @@ class DataProvider{
             this.keyfield = _configdata.keyfield
             this.orgfield = _configdata.orgfield
             this.location = _configdata.defaulttable
+            this.settingstable = 'Settings'
         }
         if(_configdata.sourcetype == 's3'){
             validsource = true
@@ -57,24 +58,21 @@ class DataProvider{
             _filter_buffer: [],
             _refresh_my_copy: function(){
                 var self = this;
-                if(self._self_type == 's3'){
-                    self._parent.datahandler.getObject({Bucket: self._parent.location, Key: self._parent.diff+'.json'}, function(err, _filterfile){
-                        if (err){
-                            console.log(err, err.stack);
-                            self._filter_buffer = []
-                        }
-                        else{
-                            var _str = _filterfile.Body.toString('utf-8');
-                            var _jsobj = JSON.parse(_str);
-                            self._filter_buffer = _jsobj['items'];
-                            self._is_in_sync = true;
-                        }
-                    })
-                }
-                if(self._self_type == 'mysql'){
-                    //TODO: figure out the implementation here.
-                    return;
-                }
+                var _item = {}
+                if(self._self_type == 's3') _item = {key: self._parent.diff}
+                if(self._self_type == 'mysql') _item = {location: self._parent.settingstable, key: self._parent.diff}
+                self._parent._get_item(_item, function(data, err){
+                    if(!err){
+                        var _str = _filterfile.Body.toString('utf-8');
+                        var _jsobj = JSON.parse(_str);
+                        self._filter_buffer = _jsobj['items'];
+                        self._is_in_sync = true;
+                    }
+                    else{
+                        self._is_in_sync = false;
+                        self._filter_buffer = []
+                    }
+                })
             },
             _write_my_copy: function(cb){
                 var self = this;
@@ -158,15 +156,16 @@ class DataProvider{
     //Getobject if we're using s3, select a row if we're using mysql
     _get_item(_item, cb){
         if(this.stype == 'mysql'){
+            var target_location = (_item.location) ? _item.location : this.defaulttable
             var query = this.datahandler.query('SELECT * FROM' + target_location + ' WHERE ' + this.keyfield + '=' + _item.key,
             function(err, result) {
                 if(!err) {
                     console.log(err.stack)
-                    cb('Unable to find item. ' + err.stack)
+                    cb('Unable to find item. ', err.stack)
                 }
                 else {
                     console.log(result)
-                    cb(JSON.stringify(result))
+                    cb(JSON.stringify(result), null)
                 }
             });
         }
@@ -177,13 +176,32 @@ class DataProvider{
             }
             this.datahandler.getObject(params, function(err){
                 if (err){
-                    cb('Item not found.')
+                    cb('Item not found.', err.stack)
                 }
                 else{
-                    cb(JSON.stringify(data))
+                    cb(JSON.stringify(data), null)
                 }
             })
         }
+    }
+
+    _get_latest(recent, cb){
+        if(this.stype == 'mysql'){
+            var target_location = (_item.location) ? _item.location : this.defaulttable
+            var sqlstring = (recent) ? 'SELECT * FROM' + target_location + ' WHERE timestamp > DATE_SUB(NOW(), INTERVAL 1 WEEK) ORDER BY timestamp DESC LIMIT 1' : 'SELECT * FROM' + target_location + ' ORDER BY timestamp DESC LIMIT 1'
+            var query = this.datahandler.query(sqlstring,
+            function(err, result) {
+                if(!err) {
+                    console.log(err.stack)
+                    cb('Unable to find item. ', err.stack)
+                }
+                else {
+                    console.log(result)
+                    cb(JSON.stringify(result), null)
+                }
+            });
+        }
+        if(this.stype == 's3'){ return; }
     }
 
     //If we're mysql, insert a row. If we're s3, putobject.
@@ -219,12 +237,14 @@ class DataProvider{
                 }
                 else{
                     console.log(err.stack)
-                    cb("Filter failed to update. " + err.stack)
+                    cb("Failed to put item in bucket. " + err.stack)
                 } 
             });
         }
     }
 
+    //TODO: method for composing a 'latest snapshot' according to a policy
+    
     _update_item(_item, cb){
         if(this.stype == 'mysql'){
             var values = []
