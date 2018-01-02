@@ -113,14 +113,14 @@ function composeData(_map, _cb){
                 body: JSON.stringify(_concated), 
                 policy: 'public-read',
                 content_type: 'application/json'
-            }, function(){
+            }, function(err, result){
                 //Write all data file
                 _dp._write_item(
                     {   key: _dp.all_data + '.json', 
                         body: JSON.stringify(_allconcat), 
                         policy: 'public-read',
                         content_type: 'application/json'
-                    }, function(){
+                    }, function(err, result){
                         _cb('Project data has been composed and saved.')
                     })  
             })

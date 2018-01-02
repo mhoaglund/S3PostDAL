@@ -39,9 +39,9 @@ class DataProvider{
             this.imageprefix = _configdata.imageprefix
             this.mainfile = _configdata.mainfile
             this.all_data = _configdata.all_data
-            this.diff = _configdata.difffile //For mysql we could just have a second table with blacklisted ids
+            this.diff = _configdata.difffile
             this.keyfield = _configdata.keyfield
-            this.orgfield = _configdata.orgfield //Another separate table here.
+            this.orgfield = _configdata.orgfield
             this.isconnected = true //TODO verify s3 connection by checking whether our bucket exists
         }
         if(!validsource){
@@ -58,21 +58,24 @@ class DataProvider{
             _filter_buffer: [],
             _refresh_my_copy: function(){
                 var self = this;
-                var _item = {}
-                if(self._self_type == 's3') _item = {key: self._parent.diff}
-                if(self._self_type == 'mysql') _item = {location: self._parent.settingstable, key: self._parent.diff}
-                self._parent._get_item(_item, function(data, err){
-                    if(!err){
-                        var _str = data.toString('utf-8');
-                        var _jsobj = JSON.parse(_str);
-                        self._filter_buffer = _jsobj['items'];
-                        self._is_in_sync = true;
-                    }
-                    else{
-                        self._is_in_sync = false;
-                        self._filter_buffer = []
-                    }
-                })
+                if(self._self_type == 's3'){
+                    self._parent.datahandler.getObject({Bucket: self._parent.location, Key: self._parent.diff}, function(err, _filterfile){
+                        if (err){
+                            console.log(err, err.stack);
+                            self._filter_buffer = []
+                        }
+                        else{
+                            var _str = _filterfile.Body.toString('utf-8');
+                            var _jsobj = JSON.parse(_str);
+                            self._filter_buffer = _jsobj['items'];
+                            self._is_in_sync = true;
+                        }
+                    })
+                }
+                if(self._self_type == 'mysql'){
+                    //TODO: figure out the implementation here.
+                    return;
+                }
             },
             _write_my_copy: function(cb){
                 var self = this;
@@ -146,6 +149,7 @@ class DataProvider{
 
             }
         }
+
         this.itemfilter._refresh_my_copy();
     }
 
@@ -179,7 +183,7 @@ class DataProvider{
                     cb('Item not found.', err.stack)
                 }
                 else{
-                    cb(JSON.stringify(data), null)
+                    cb(JSON.stringify(data.Body.toString()), null)
                 }
             })
         }
@@ -215,11 +219,11 @@ class DataProvider{
                 function(err, result) {
                     if(!err) {
                         console.log(err.stack)
-                        cb('Unable to insert item. ' + result) //is result any good?
+                        cb(err, 'Unable to insert item. ' + result) //is result any good?
                     }
                     else {
                         console.log(result)
-                        cb('Successfully inserted item.')
+                        cb(null, 'Successfully inserted item.')
                     }
             });
         }
