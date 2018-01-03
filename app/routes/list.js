@@ -5,21 +5,9 @@ var AWS = require('aws-sdk');
 var s3 = new AWS.S3();
 
 /* GET listing of bucket contents. */
-router.get('/', function(req, res, next) {
-    var params = {
-        Bucket: _dp.location,
-        Delimiter: '/',
-        Prefix: ''
-    }
-    if(req.query.project){
-        params.Prefix = req.query.project + '_';
-    }
-    s3.listObjectsV2(params, function (err, data) {
-        if(err)callback(err)
-        console.log(data)
-        reply = data
-        res.send(reply);
-    })
+router.get('/', require('connect-ensure-login').ensureLoggedIn(), function(req, res, next) {
+    //TODO create a method on the dp that returns a listing. figure out what that should mean for sql.
+    res.send('Not yet implemented.')
 });
 
 module.exports = router;

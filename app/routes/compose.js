@@ -8,9 +8,10 @@ var _ = require('underscore')
 var _concated = {Groups:[]};
 var _allconcat = {Groups:[]};
 var persistence = require('../persistence.js');
+var passport = require('passport')
 
 /* Compose project data doc */
-router.get('/', function(req, res, next) {
+router.get('/', require('connect-ensure-login').ensureLoggedIn(), function(req, res, next) {
     retrieveOrgMap(function(msg, orgmap){
         if(msg){
              res.send(msg)
@@ -22,13 +23,13 @@ router.get('/', function(req, res, next) {
     })
 });
 
-router.get('/remove', function(req, res, next) {
+router.get('/remove', require('connect-ensure-login').ensureLoggedIn(), function(req, res, next) {
     _dp.itemfilter._add_item(req.query.itemid, true, function(msg){
         res.send(req.query.itemid + ": " + msg);
     })
 });
 
-router.get('/reinstate', function(req, res, next) {
+router.get('/reinstate', require('connect-ensure-login').ensureLoggedIn(), function(req, res, next) {
     _dp.itemfilter._remove_item(req.query.itemid, true, function(msg){
         res.send(req.query.itemid + ": " + msg);
     })

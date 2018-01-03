@@ -5,7 +5,7 @@ var AWS = require('aws-sdk');
 var s3 = new AWS.S3();
 
 /* GET listing of bucket contents. */
-router.get('/', function(req, res, next) {
+router.get('/', require('connect-ensure-login').ensureLoggedIn(), function(req, res, next) {
     if(req.query.itemid){
         var params = {
             Bucket: _dp.location,

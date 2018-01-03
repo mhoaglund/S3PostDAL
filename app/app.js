@@ -36,13 +36,7 @@ var passport = require('passport');
 var Strategy = require('passport-local').Strategy;
 var staticauth = require('./staticauth');
 
-// Configure the local strategy for use by Passport.
-//
-// The local strategy require a `verify` function which receives the credentials
-// (`username` and `password`) submitted by the user.  The function must verify
-// that the password is correct and then invoke `cb` with a user object, which
-// will be set at `req.user` in route handlers after authentication.
-passport.use(new Strategy(
+passport.use('local', new Strategy(
   function(username, password, cb) {
     staticauth.users.findByUsername(username, function(err, user) {
       if (err) { return cb(err); }
@@ -52,14 +46,6 @@ passport.use(new Strategy(
     });
   }));
 
-
-// Configure Passport authenticated session persistence.
-//
-// In order to restore authentication state across HTTP requests, Passport needs
-// to serialize users into and deserialize users out of the session.  The
-// typical implementation of this is as simple as supplying the user ID when
-// serializing, and querying the user record by ID from the database when
-// deserializing.
 passport.serializeUser(function(user, cb) {
   cb(null, user.id);
 });
@@ -73,6 +59,7 @@ passport.deserializeUser(function(id, cb) {
 
 var index = require('./routes/index');
 var users = require('./routes/users');
+var login = require('./routes/login');
 var upload = require('./routes/upload');
 var listitems = require('./routes/list');
 var retrieve = require('./routes/retrieve');
@@ -82,8 +69,6 @@ var app = express();
 
 app.use(require('express-session')({ secret: 'keyboard cat', resave: false, saveUninitialized: false }));
 
-// Initialize Passport and restore authentication state, if any, from the
-// session.
 app.use(passport.initialize());
 app.use(passport.session());
 
@@ -91,8 +76,6 @@ app.use(passport.session());
 app.set('views', path.join(__dirname, 'views'));
 app.set('view engine', 'pug');
 
-// uncomment after placing your favicon in /public
-//app.use(favicon(path.join(__dirname, 'public', 'favicon.ico')));
 app.use(logger('dev'));
 app.use(bodyParser.json());
 app.use(bodyParser.urlencoded({ extended: false }));
@@ -101,25 +84,26 @@ app.use(express.static(path.join(__dirname, 'public')));
 
 app.use('/', index);
 app.use('/users', users);
+app.post('/login', passport.authenticate('local'), function(req,res,next){
+  res.redirect('/');
+})
+app.get('/login', function(req,res,next){
+  res.render('login');
+})
 app.use('/upload', upload);
 app.use('/list', listitems);
 app.use('/retrieve', retrieve);
 app.use('/compose', compose);
 
-// catch 404 and forward to error handler
 app.use(function(req, res, next) {
   var err = new Error('Not Found');
   err.status = 404;
   next(err);
 });
 
-// error handler
 app.use(function(err, req, res, next) {
-  // set locals, only providing error in development
   res.locals.message = err.message;
   res.locals.error = req.app.get('env') === 'development' ? err : {};
-
-  // render the error page
   res.status(err.status || 500);
   res.render('error');
 });

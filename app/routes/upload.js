@@ -22,7 +22,7 @@ if(_dp.stype == 's3'){
           }
         })
     })
-    router.post('/', s3share.single('file'), function (req, res, next) {
+    router.post('/', s3share.single('file'), require('connect-ensure-login').ensureLoggedIn(), function (req, res, next) {
         uploadData(req.body, function(err){
             if(err) res.send(err)
             else{
@@ -32,7 +32,7 @@ if(_dp.stype == 's3'){
     })
 } else {
     //TODO: just implement a vanilla multer thing here and add an image upload handler to the dataprovider.
-    router.post('/', function (req, res, next) {
+    router.post('/', require('connect-ensure-login').ensureLoggedIn(), function (req, res, next) {
         uploadData(req.body, function(err){
             if(err) res.send(err)
             else{
@@ -42,13 +42,8 @@ if(_dp.stype == 's3'){
     })
 }
 
-
-router.get('/', function (req,res,next){
-    res.send('respond with a resource');
-})
-
 //Add group name
-router.post('/org', function(req,res,next){
+router.post('/org', require('connect-ensure-login').ensureLoggedIn(), function(req,res,next){
     
 })
 
