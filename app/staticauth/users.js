@@ -1,5 +1,5 @@
 var fs = require('fs');
-var records = JSON.parse(fs.readFileSync('./app/auth.json', 'utf8'));
+var records = JSON.parse(fs.readFileSync('./app/auth.json', 'utf8')).users;
   
   exports.findById = function(id, cb) {
   process.nextTick(function() {

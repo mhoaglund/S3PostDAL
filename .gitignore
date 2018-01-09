@@ -61,3 +61,6 @@ config.json
 config_alt.json
 auth.json
 groupmap.json
+
+public/
+!public/stylesheets

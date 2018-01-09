@@ -61,12 +61,12 @@ function uploadData(data, cb){
     }
     TidyData(data, function(packet){
         if(updating){
-            _dp._update_item({key: itemid, body: packet, ACL: 'public-read'}, function(reply){
+            _dp._update_item({key: itemid, body: packet, policy: 'public-read'}, function(reply){
                 cb(reply)
             })
         }
         else{
-            _dp._write_item({key: itemid, body: packet, ACL: 'public-read'}, function(reply){
+            _dp._write_item({key: itemid, body: packet, policy: 'public-read'}, function(reply){
                 cb(reply)
             })
         }
