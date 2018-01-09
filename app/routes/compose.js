@@ -23,14 +23,19 @@ router.get('/', require('connect-ensure-login').ensureLoggedIn(), function(req, 
     })
 });
 
+function prepareId(_id){
+    var components = _id.split('_');
+    return components[0].replace(/-/g, ' ') + '_' + components[1]
+}
+
 router.get('/remove', require('connect-ensure-login').ensureLoggedIn(), function(req, res, next) {
-    _dp.itemfilter._add_item(req.query.itemid, true, function(msg){
+    _dp.itemfilter._add_item(prepareId(req.query.itemid), true, function(msg){
         res.send(req.query.itemid + ": " + msg);
     })
 });
 
 router.get('/reinstate', require('connect-ensure-login').ensureLoggedIn(), function(req, res, next) {
-    _dp.itemfilter._remove_item(req.query.itemid, true, function(msg){
+    _dp.itemfilter._remove_item(prepareId(req.query.itemid), true, function(msg){
         res.send(req.query.itemid + ": " + msg);
     })
 });
