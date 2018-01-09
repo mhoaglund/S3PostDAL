@@ -23,6 +23,18 @@ router.get('/', require('connect-ensure-login').ensureLoggedIn(), function(req, 
     })
 });
 
+router.get('/alt', function(req, res, next) {
+    retrieveOrgMap(function(msg, orgmap){
+        if(msg){
+             res.send(msg)
+        } else{
+            compose_alt(orgmap, function(reply){
+                res.send(reply)
+            })
+        }
+    })
+});
+
 router.get('/remove', require('connect-ensure-login').ensureLoggedIn(), function(req, res, next) {
     _dp.itemfilter._add_item(req.query.itemid, true, function(msg){
         res.send(req.query.itemid + ": " + msg);
@@ -52,6 +64,43 @@ function retrieveOrgMap(cb){
         }
     })
 }
+
+var testmain = {}
+var testall = {}
+function compose_alt(_map, _cb){
+    var i =_map.length;
+    _map.forEach(function(_group){
+        getKeysForProject(_dp.location, _group, function(_data){
+            if(_data == null){
+                console.log('skipping empty project: ' + _group);
+                i--;
+                console.log(i)
+                return;
+            }
+            getObjects(_dp.location, _group, _data, function(projectdata){
+                i--;
+                console.log(i)
+                testmain[_group] = {Group:_group, Items:projectdata.main}
+                testall[_group] = {Group:_group, Items:projectdata.all}
+                if(i == 0) {
+                    console.dir(testmain)
+                    var payload = {'Groups':_.values(testmain)};
+                    _dp._write_item(
+                        {   key: _dp.mainfile + '2.json', 
+                            body: JSON.stringify(paload), 
+                            policy: 'public-read',
+                            content_type: 'application/json'
+                        }, function(err, result){
+                            if(err) _cb('There was a problem collating the data.')
+                            _cb('Project data has been composed and saved.')
+                        })  
+                }
+            })    
+        });
+    })
+
+}
+
 function composeData(_map, _cb){
     async.filterSeries(_map, function(_group, callback){
         getKeysForProject(_dp.location, _group, function(_data){
@@ -142,5 +191,50 @@ function getKeysForProject(_bucket, _project, cb){
         else console.log(err);
     });
 };
+
+function getObjects(_bucket, _group, _data, cb){
+    var _composed = {Group:_group, Items:[]}
+    var _allitems = {Group:_group, Items:[]}
+    async.each(_data, function(_obj, callback){
+        //console.log('getting '+_obj.Key);
+        var _myparams = {
+            Bucket: _dp.location,
+            Key: _obj.Key
+        };
+        s3.getObject(_myparams, function(err, _item) {
+            if (err) console.log(err, err.stack); // an error occurred
+            else{
+                var _str = _item.Body.toString('utf-8'); //content-type in s3 doesnt seem to matter
+                var _jsobj = JSON.parse(_str);
+                _jsobj.momentkey = _myparams.Key.toString();
+                //Clearing empties
+                for (var property in _jsobj) {
+                    if (_jsobj.hasOwnProperty(property)) {
+                        if(typeof(_jsobj[property]) == 'string'){
+                            if(_jsobj[property] == ""){
+                                    _jsobj[property] = null;
+                                    console.log('cleared an empty string');
+                            }
+                        }
+                        else{
+                            if(_jsobj[property][0] == ""){
+                                    _jsobj[property] = null;
+                                console.log('cleared an empty array');
+                            }
+                        }
+                    }
+                }
+                if(!_.contains(_dp.itemfilter._filter_buffer, _obj.Key)){
+                    _composed.Items.push(_jsobj);
+                }
+                _allitems.Items.push(_jsobj);
+                callback();
+            }
+        });
+    }, function(err){
+        if(!err) cb({'main':_composed, 'all':_allitems});
+        else cb({'main':null, 'all':null})
+    });
+}
 
 module.exports = router;
