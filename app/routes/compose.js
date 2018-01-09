@@ -16,18 +16,6 @@ router.get('/', require('connect-ensure-login').ensureLoggedIn(), function(req, 
         if(msg){
              res.send(msg)
         } else{
-            composeData(orgmap, function(reply){
-                res.send(reply)
-            })
-        }
-    })
-});
-
-router.get('/alt', function(req, res, next) {
-    retrieveOrgMap(function(msg, orgmap){
-        if(msg){
-             res.send(msg)
-        } else{
             compose_alt(orgmap, function(reply){
                 res.send(reply)
             })
@@ -67,115 +55,41 @@ function retrieveOrgMap(cb){
 
 var testmain = {}
 var testall = {}
+var manifest = []
 function compose_alt(_map, _cb){
     var i =_map.length;
     _map.forEach(function(_group){
         getKeysForProject(_dp.location, _group, function(_data){
-            if(_data == null){
-                console.log('skipping empty project: ' + _group);
-                i--;
-                console.log(i)
-                return;
-            }
             getObjects(_dp.location, _group, _data, function(projectdata){
                 i--;
                 console.log(i)
-                testmain[_group] = {Group:_group, Items:projectdata.main}
-                testall[_group] = {Group:_group, Items:projectdata.all}
-                if(i == 0) {
-                    console.dir(testmain)
+                if(projectdata.main.Items.length > 0) testmain[_group] = {Group:_group, Items:projectdata.main.Items}
+                if(projectdata.all.Items.length > 0) testall[_group] = {Group:_group, Items:projectdata.all.Items}
+                if(i==0) {
+                    //console.dir(testmain)
                     var payload = {'Groups':_.values(testmain)};
                     _dp._write_item(
-                        {   key: _dp.mainfile + '2.json', 
-                            body: JSON.stringify(paload), 
+                        {   key: _dp.mainfile + '.json', 
+                            body: JSON.stringify(payload), 
                             policy: 'public-read',
                             content_type: 'application/json'
-                        }, function(err, result){
-                            if(err) _cb('There was a problem collating the data.')
+                        }, function(result){
                             _cb('Project data has been composed and saved.')
-                        })  
+                    }) 
+                    var payload_all = {'Groups':_.values(testall)};
+                    _dp._write_item(
+                        {   key: _dp.all_data + '.json', 
+                            body: JSON.stringify(payload_all), 
+                            policy: 'public-read',
+                            content_type: 'application/json'
+                        }, function(result){
+                            console.log('saved alldata')
+                    })   
                 }
             })    
         });
     })
 
-}
-
-function composeData(_map, _cb){
-    async.filterSeries(_map, function(_group, callback){
-        getKeysForProject(_dp.location, _group, function(_data){
-            if(_data == null){
-                console.log('skipping empty project: ' + _group);
-                return callback(null, null);
-            } 
-            var _composed = {Group:_group, Items:[]}
-            var _allitems = {Group:_group, Items:[]}
-            async.filter(_data, function(_obj, cb){
-                var _myparams = {
-                    Bucket: _dp.location,
-                    Key: _obj.Key
-                };
-                    s3.getObject(_myparams, function(err, _item) {
-                        if (err) console.log(err, err.stack); // an error occurred
-                        else{
-                            var _str = _item.Body.toString('utf-8'); //content-type in s3 doesnt seem to matter
-                            var _jsobj = JSON.parse(_str);
-                            _jsobj.momentkey = _myparams.Key.toString();
-                            for (var property in _jsobj) {
-                                if (_jsobj.hasOwnProperty(property)) {
-                                    if(typeof(_jsobj[property]) == 'string'){
-                                        if(_jsobj[property] == ""){
-                                             _jsobj[property] = null;
-                                             console.log('cleared an empty string');
-                                        }
-                                    }
-                                    else{
-                                        if(_jsobj[property][0] == ""){
-                                             _jsobj[property] = null;
-                                            console.log('cleared an empty array');
-                                        }
-                                    }
-                                }
-                            }
-                            if(!_.contains(_dp.itemfilter._filter_buffer, _obj.Key)){
-                                _composed.Items.push(_jsobj);
-                            }
-                            _allitems.Items.push(_jsobj);
-                            return cb(null, _composed, _allitems);
-                        }
-                    });
-            }, function(err, results){
-                //Without these ifs, we end up with strange copies all over the place. TODO fix.
-                if(!_.find(_concated.Groups, {Group:_composed.Group})){
-                    _concated.Groups.push(_composed);
-                }
-                if(!_.find(_allconcat.Groups, {Group:_allitems.Group})){
-                    _allconcat.Groups.push(_allitems);
-                }
-                return callback(null, _concated, _allconcat);
-            });
-        });
-        
-    }, function(err, results){
-        //Write working subset of items
-        _dp._write_item(
-            {   key: _dp.mainfile + '.json', 
-                body: JSON.stringify(_concated), 
-                policy: 'public-read',
-                content_type: 'application/json'
-            }, function(err, result){
-                //Write all data file
-                _dp._write_item(
-                    {   key: _dp.all_data + '.json', 
-                        body: JSON.stringify(_allconcat), 
-                        policy: 'public-read',
-                        content_type: 'application/json'
-                    }, function(err, result){
-                        _cb('Project data has been composed and saved.')
-                    })  
-            })
-
-    });
 }
 
 function getKeysForProject(_bucket, _project, cb){
