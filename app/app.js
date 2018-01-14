@@ -10,7 +10,7 @@ if(process.env.bucket){
   _DiffKey = process.env.difffile;
 }
 else{
-  nconf.file('./app/config_alt.json');
+  nconf.file('./app/config.json');
   //gotta figure out these globals now
   _OrgField = nconf.get('orgfield');
   _S3Bucket = nconf.get('bucket');
@@ -21,7 +21,7 @@ else{
 }
 
 var fs = require('fs');
-var dpconfig = JSON.parse(fs.readFileSync('./app/config_alt.json', 'utf8'));
+var dpconfig = JSON.parse(fs.readFileSync('./app/config.json', 'utf8'));
 _dp = new provider.DataProvider(dpconfig)
 
 var express = require('express');
@@ -68,7 +68,11 @@ var compose = require('./routes/compose');
 var app = express();
 
 app.use(require('express-session')({ secret: 'keyboard cat', resave: false, saveUninitialized: false }));
-
+app.use(function(req, res, next) {
+  res.header("Access-Control-Allow-Origin", "*");
+  res.header("Access-Control-Allow-Headers", "Origin, X-Requested-With, Content-Type, Accept");
+  next();
+});
 app.use(passport.initialize());
 app.use(passport.session());
 

@@ -22,7 +22,7 @@ if(_dp.stype == 's3'){
           }
         })
     })
-    router.post('/', s3share.single('file'), require('connect-ensure-login').ensureLoggedIn(), function (req, res, next) {
+    router.post('/', s3share.single('file'), function (req, res, next) {
         uploadData(req.body, function(err){
             if(err) res.send(err)
             else{
@@ -32,7 +32,7 @@ if(_dp.stype == 's3'){
     })
 } else {
     //TODO: just implement a vanilla multer thing here and add an image upload handler to the dataprovider.
-    router.post('/', require('connect-ensure-login').ensureLoggedIn(), function (req, res, next) {
+    router.post('/', function (req, res, next) {
         uploadData(req.body, function(err){
             if(err) res.send(err)
             else{
@@ -74,24 +74,43 @@ function uploadData(data, cb){
 }
 
 function TidyData(query, callback){
-    var packet = {};
-    for (var property in query){
-        if(query[property]){
-            var arr = query[property].split(","); //break up CSLs
-            if(arr.length > 1){
-                var newarr = [];
-                for (var i = 0; i < arr.length; i++) {
-                    newarr[i] = arr[i].trim();
+    if(_dp.stype == 's3'){
+        var packet = {};
+        for (var property in query){
+            if(query[property]){
+                var arr = query[property].split(","); //break up CSLs
+                if(arr.length > 1){
+                    var newarr = [];
+                    for (var i = 0; i < arr.length; i++) {
+                        newarr[i] = arr[i].trim();
+                    }
+                    packet[property] = newarr;
+                }else{
+                    packet[property] = [query[property]];
                 }
-                packet[property] = newarr;
-            }else{
-                packet[property] = [query[property]];
             }
         }
+        delete packet['callback'];
+        delete packet['_'];
+        callback(JSON.stringify(packet, null, 4));
+    } else{
+        var packet = {};
+        for (var property in query){
+            if(query[property]){
+                if(Array.isArray(query[property])){
+                    packet[property] = JSON.stringify(query[property])
+                } else{
+                    packet[property] = query[property];
+                }
+            }
+        }
+        callback(packet);
     }
-    delete packet['callback'];
-    delete packet['_'];
-    callback(JSON.stringify(packet, null, 4));
+
+};
+
+function isArray (value) {
+    return value && typeof value === 'object' && value.constructor === Array;
 };
 
 module.exports = router;

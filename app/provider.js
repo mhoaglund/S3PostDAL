@@ -1,4 +1,3 @@
-//TODO: flesh out data provider module so we can switch out S3 and MySQL and retain the same simple grouping logic.
 var _ = require('underscore')
 
 class DataProvider{
@@ -29,6 +28,7 @@ class DataProvider{
             this.keyfield = _configdata.keyfield
             this.orgfield = _configdata.orgfield
             this.location = _configdata.defaulttable
+            this.timestamp_field = _configdata.timestampfield
             this.settingstable = 'Settings'
         }
         if(_configdata.sourcetype == 's3'){
@@ -160,7 +160,7 @@ class DataProvider{
     //Getobject if we're using s3, select a row if we're using mysql
     _get_item(_item, cb){
         if(this.stype == 'mysql'){
-            var target_location = (_item.location) ? _item.location : this.defaulttable
+            var target_location = (_item.location) ? _item.location : this.location
             var query = this.datahandler.query('SELECT * FROM' + target_location + ' WHERE ' + this.keyfield + '=' + _item.key,
             function(err, result) {
                 if(!err) {
@@ -189,9 +189,32 @@ class DataProvider{
         }
     }
 
+    ///Pass in a property to compare, an operation, and a comparator value.
+    _get_items(_prop, _operation, _comp, cb){
+        if(this.stype == 'mysql'){
+            var target_location = (_item.location) ? _item.location : this.location
+            var _sqlstr = 'SELECT * FROM' + target_location + ' WHERE ' + _prop + ' '+ _operation + ' '+ _comp;
+            console.log(_sqlstr);
+            var query = this.datahandler.query(_sqlstr,
+            function(err, result) {
+                if(!err) {
+                    console.log(err.stack)
+                    cb('Unable to find item. ', err.stack)
+                }
+                else {
+                    console.log(result)
+                    cb(JSON.stringify(result), null)
+                }
+            });
+        }
+        if(this.stype == 's3'){
+            return;
+        }
+    }
+
     _get_latest(recent, cb){
         if(this.stype == 'mysql'){
-            var target_location = (_item.location) ? _item.location : this.defaulttable
+            var target_location = (_item.location) ? _item.location : this.location
             var sqlstring = (recent) ? 'SELECT * FROM' + target_location + ' WHERE timestamp > DATE_SUB(NOW(), INTERVAL 1 WEEK) ORDER BY timestamp DESC LIMIT 1' : 'SELECT * FROM' + target_location + ' ORDER BY timestamp DESC LIMIT 1'
             var query = this.datahandler.query(sqlstring,
             function(err, result) {
@@ -213,19 +236,21 @@ class DataProvider{
     //Item: {location: '', key: '', body: {}, policy: '' (maybe just null for mysql?)}
     _write_item(_item, cb){
         if(this.stype == 'mysql'){
-            body.id = _item.key
-            var target_location = (_item.location) ? _item.location : this.defaulttable
-            var query = this.datahandler.query('INSERT INTO' + target_location + ' SET ?', body,
+            _item.body.id = _item.key
+            _item.body.timestamp
+            var target_location = (_item.location) ? _item.location : this.location;
+            var query = this.datahandler.query('INSERT INTO ' + target_location + ' SET '+this.timestamp_field+' = NOW(), ?', _item.body,
                 function(err, result) {
                     if(!err) {
-                        console.log(err.stack)
-                        cb(err, 'Unable to insert item. ' + result) //is result any good?
-                    }
-                    else {
                         console.log(result)
                         cb(null, 'Successfully inserted item.')
                     }
+                    else {
+                        console.log(err)
+                        cb(err, 'Unable to insert item. ' + result) //is result any good?
+                    }
             });
+            console.log(query.sql);
         }
         if(this.stype == 's3'){
             var params = {
@@ -253,7 +278,7 @@ class DataProvider{
         if(this.stype == 'mysql'){
             var values = []
             var qitems = _unzip(_item.body, ' = ?, ')
-            var target_location = (_item.location) ? _item.location : this.defaulttable
+            var target_location = (_item.location) ? _item.location : this.location
             var query = this.datahandler.query('UPDATE ' + target_location + ' SET ' + qitems['props'] + ' WHERE id=' + _item.key, qitems['vals'],
                 function(err, result) {
                     if(!err) {
