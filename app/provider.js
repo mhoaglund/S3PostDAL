@@ -193,11 +193,11 @@ class DataProvider{
     _get_items(_prop, _operation, _comp, cb){
         if(this.stype == 'mysql'){
             var target_location = (_item.location) ? _item.location : this.location
-            var _sqlstr = 'SELECT * FROM' + target_location + ' WHERE ' + _prop + ' '+ _operation + ' '+ _comp;
+            var _sqlstr = 'SELECT * FROM ' + target_location + ' WHERE ' + _prop + ' '+ _operation + ' '+ _comp;
             console.log(_sqlstr);
             var query = this.datahandler.query(_sqlstr,
             function(err, result) {
-                if(!err) {
+                if(err) {
                     console.log(err.stack)
                     cb('Unable to find item. ', err.stack)
                 }
@@ -206,6 +206,7 @@ class DataProvider{
                     cb(JSON.stringify(result), null)
                 }
             });
+            console.log(query.sql)
         }
         if(this.stype == 's3'){
             return;
@@ -214,11 +215,11 @@ class DataProvider{
 
     _get_latest(recent, cb){
         if(this.stype == 'mysql'){
-            var target_location = (_item.location) ? _item.location : this.location
-            var sqlstring = (recent) ? 'SELECT * FROM' + target_location + ' WHERE timestamp > DATE_SUB(NOW(), INTERVAL 1 WEEK) ORDER BY timestamp DESC LIMIT 1' : 'SELECT * FROM' + target_location + ' ORDER BY timestamp DESC LIMIT 1'
+            var target_location = this.location
+            var sqlstring = (recent) ? 'SELECT * FROM ' + target_location + ' WHERE timestamp > DATE_SUB(NOW(), INTERVAL 1 WEEK) ORDER BY timestamp DESC LIMIT 1' : 'SELECT * FROM' + target_location + ' ORDER BY timestamp DESC LIMIT 1'
             var query = this.datahandler.query(sqlstring,
             function(err, result) {
-                if(!err) {
+                if(err) {
                     console.log(err.stack)
                     cb('Unable to find item. ', err.stack)
                 }
@@ -227,6 +228,7 @@ class DataProvider{
                     cb(JSON.stringify(result), null)
                 }
             });
+            console.log(query.sql)
         }
         if(this.stype == 's3'){ return; }
     }

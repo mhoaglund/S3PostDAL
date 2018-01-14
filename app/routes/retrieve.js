@@ -23,10 +23,17 @@ var s3 = new AWS.S3();
 //     }
 // });
 
+//TODO cache stuff, cache newest timestamp etc.
 router.get('/', function(req, res, next) {
-    _dp._get_items(req.targetprop, '>', req.compval, function(){
-        //TODO zip up and send json back
-    })
+    if(!req.query.latest){
+        _dp._get_items(req.targetprop, '>', req.compval, function(data){
+            res.send(JSON.stringify(data))
+        })
+    } else{
+        _dp._get_latest(true, function(data){
+            res.send(JSON.stringify(data))
+        })
+    }
 })
 
 module.exports = router;
