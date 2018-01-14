@@ -169,7 +169,7 @@ class DataProvider{
                 }
                 else {
                     console.log(result)
-                    cb(JSON.stringify(result), null)
+                    cb(result, null)
                 }
             });
         }
@@ -213,25 +213,75 @@ class DataProvider{
         }
     }
 
-    _get_latest(recent, cb){
-        if(this.stype == 'mysql'){
-            var target_location = this.location
-            var sqlstring = (recent) ? 'SELECT * FROM ' + target_location + ' WHERE timestamp > DATE_SUB(NOW(), INTERVAL 1 WEEK) ORDER BY timestamp DESC LIMIT 1' : 'SELECT * FROM' + target_location + ' ORDER BY timestamp DESC LIMIT 1'
-            var query = this.datahandler.query(sqlstring,
-            function(err, result) {
-                if(err) {
-                    console.log(err.stack)
-                    cb('Unable to find item. ', err.stack)
-                }
-                else {
-                    console.log(result)
-                    cb(JSON.stringify(result), null)
-                }
-            });
-            console.log(query.sql)
+        _get_latest(recent, cb){
+            if(this.stype == 'mysql'){
+                var target_location = this.location
+                var sqlstring = (recent) ? 'SELECT * FROM ' + target_location + ' WHERE timestamp > DATE_SUB(NOW(), INTERVAL 1 WEEK) ORDER BY timestamp DESC LIMIT 1' : 'SELECT * FROM' + target_location + ' ORDER BY timestamp DESC LIMIT 1'
+                var query = this.datahandler.query(sqlstring,
+                function(err, result) {
+                    if(err) {
+                        console.log(err.stack)
+                        cb('Unable to find item. ', err.stack)
+                    }
+                    else {
+                        console.log(result)
+                        cb(result, null)
+                    }
+                });
+                console.log(query.sql)
+            }
+            if(this.stype == 's3'){ return; }
         }
-        if(this.stype == 's3'){ return; }
-    }
+
+        _get_newer_than(_item, _period, cb){
+            if(this.stype == 'mysql'){
+                if(!_item.timestamp){
+                    _get_item(_item.key, function(record){
+                        var target_location = this.location
+                        var sqlstring = 'SELECT * FROM ' + target_location + ' WHERE timestamp > DATE_SUB('+record.timestamp+', INTERVAL 1 '+_period+') ORDER BY timestamp DESC';
+                        var query = this.datahandler.query(sqlstring,
+                            function(err, result) {
+                                if(err) {
+                                    console.log(err.stack)
+                                    cb('Unable to find item. ', err.stack)
+                                }
+                                else {
+                                    console.log(result)
+                                    cb(JSON.stringify(result), null)
+                                }
+                            });
+                        console.log(query.sql)
+                    })
+                }
+                
+            }
+            if(this.stype == 's3'){ return; }
+        }
+
+        _get_older_than(_id, _period, cb){
+            if(this.stype == 'mysql'){
+                if(!_item.timestamp){
+                    _get_item(_item.key, function(record){
+                        var target_location = this.location
+                        var sqlstring = 'SELECT * FROM ' + target_location + ' WHERE timestamp < DATE_SUB('+record.timestamp+', INTERVAL 1 '+_period+') ORDER BY timestamp DESC';
+                        var query = this.datahandler.query(sqlstring,
+                            function(err, result) {
+                                if(err) {
+                                    console.log(err.stack)
+                                    cb('Unable to find item. ', err.stack)
+                                }
+                                else {
+                                    console.log(result)
+                                    cb(JSON.stringify(result), null)
+                                }
+                            });
+                        console.log(query.sql)
+                    })
+                }
+                console.log(query.sql)
+            }
+            if(this.stype == 's3'){ return; }
+        }
 
     //If we're mysql, insert a row. If we're s3, putobject.
     //Returns a string.

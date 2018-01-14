@@ -26,7 +26,7 @@ if(_dp.stype == 's3'){
         uploadData(req.body, function(err){
             if(err) res.send(err)
             else{
-                res.send('Upload complete')
+                res.send({'success':true, 'msg':'Upload complete'})
             }
         });
     })
@@ -36,7 +36,7 @@ if(_dp.stype == 's3'){
         uploadData(req.body, function(err){
             if(err) res.send(err)
             else{
-                res.send('Upload complete')
+                res.send({'success':true, 'msg':'Upload complete'})
             }
         });
     })
