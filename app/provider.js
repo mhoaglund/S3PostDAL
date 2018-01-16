@@ -27,9 +27,10 @@ class DataProvider{
             })
             this.keyfield = _configdata.keyfield
             this.orgfield = _configdata.orgfield
+            this.mainrecord = _configdata.mainrecord
             this.location = _configdata.defaulttable
             this.timestamp_field = _configdata.timestampfield
-            this.settingstable = 'Settings'
+            this.settingstable = _configdata.auxtable
         }
         if(_configdata.sourcetype == 's3'){
             validsource = true
@@ -163,9 +164,9 @@ class DataProvider{
             var target_location = (_item.location) ? _item.location : this.location
             var query = this.datahandler.query('SELECT * FROM' + target_location + ' WHERE ' + this.keyfield + '=' + _item.key,
             function(err, result) {
-                if(!err) {
+                if(err) {
                     console.log(err.stack)
-                    cb('Unable to find item. ', err.stack)
+                    cb(null, err.stack)
                 }
                 else {
                     console.log(result)
@@ -236,7 +237,7 @@ class DataProvider{
         _get_newer_than(_item, _period, cb){
             if(this.stype == 'mysql'){
                 if(!_item.timestamp){
-                    _get_item(_item.key, function(record){
+                    _get_item({'key':_item.key}, function(record, err){
                         var target_location = this.location
                         var sqlstring = 'SELECT * FROM ' + target_location + ' WHERE timestamp > DATE_SUB('+record.timestamp+', INTERVAL 1 '+_period+') ORDER BY timestamp DESC';
                         var query = this.datahandler.query(sqlstring,
@@ -261,7 +262,7 @@ class DataProvider{
         _get_older_than(_id, _period, cb){
             if(this.stype == 'mysql'){
                 if(!_item.timestamp){
-                    _get_item(_item.key, function(record){
+                    _get_item({'key':_id}, function(record, err){
                         var target_location = this.location
                         var sqlstring = 'SELECT * FROM ' + target_location + ' WHERE timestamp < DATE_SUB('+record.timestamp+', INTERVAL 1 '+_period+') ORDER BY timestamp DESC';
                         var query = this.datahandler.query(sqlstring,
@@ -326,22 +327,47 @@ class DataProvider{
 
     //TODO: method for composing a 'latest snapshot' according to a policy
     
-    _update_item(_item, cb){
+    _update_item(_item, cb, verify = false){
         if(this.stype == 'mysql'){
             var values = []
             var qitems = _unzip(_item.body, ' = ?, ')
             var target_location = (_item.location) ? _item.location : this.location
-            var query = this.datahandler.query('UPDATE ' + target_location + ' SET ' + qitems['props'] + ' WHERE id=' + _item.key, qitems['vals'],
+            //make sure 
+            if(verify){
+                this._get_item(_item, function(record, err){
+                    if(!record){
+                        //write instead
+                        this._write_item(_item, function(newrecord, err){
+                            if(newrecord) cb("Item was not found. New record written.", null); //does this return all the way out?
+                        })
+                    } else{
+                        var query = this.datahandler.query('UPDATE ' + target_location + ' SET ' + qitems['props'] + ' WHERE id=' + _item.key, qitems['vals'],
+                        function(err, result) {
+                            if(!err) {
+                                console.log(err.stack)
+                                cb('Unable to insert item. ', err.stack)
+                            }
+                            else {
+                                console.log(result)
+                                cb('Successfully inserted item.', null)
+                            }
+                        });
+                    }
+                })
+                //TODO flow cleanup
+            } else{
+                var query = this.datahandler.query('UPDATE ' + target_location + ' SET ' + qitems['props'] + ' WHERE id=' + _item.key, qitems['vals'],
                 function(err, result) {
                     if(!err) {
                         console.log(err.stack)
-                        cb('Unable to insert item. ' + err.stack)
+                        cb('Unable to insert item. ', err.stack)
                     }
                     else {
                         console.log(result)
-                        cb('Successfully inserted item.')
+                        cb('Successfully inserted item.', null)
                     }
-            });
+                });
+            }
         }
         if(this.stype == 's3'){
             var params = {
@@ -382,6 +408,17 @@ class DataProvider{
         }
         if(_should_trim) concated_property_names = concated_property_names.replace(/(^[,\s]+)|([,\s]+$)/g, '');
         return {'props': concated_property_names, 'vals': array_of_values}
+    }
+
+    ///If this storage solution involves serialized records that need to be collated into a 'current state' record, this intakes a policy function and enacts it against a series of records.
+    //Where is the source of truth here?
+    _compress_serial_records(_items){
+        var self = this;
+        //this.mainrecord
+        //this.settingstable
+        this._update_item({'id':this.mainrecord, 'location':this.settingstable, 'items':_items}, function(data){
+
+        }, true)
     }
 
 }
