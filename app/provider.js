@@ -31,6 +31,7 @@ class DataProvider{
             this.location = _configdata.defaulttable
             this.timestamp_field = _configdata.timestampfield
             this.settingstable = _configdata.auxtable
+            this.itemcache = [] //should be more generalized, but right now is implemented spec. with regard to The Shallows
         }
         if(_configdata.sourcetype == 's3'){
             validsource = true
@@ -190,8 +191,31 @@ class DataProvider{
         }
     }
 
+    _get_table_as_list(_table, cb){
+        var self = this;
+        if(this.stype == 'mysql'){
+            var _sqlstr = 'SELECT * FROM ' + _table;
+            console.log(_sqlstr);
+            var query = this.datahandler.query(_sqlstr,
+            function(err, result) {
+                if(err) {
+                    console.log(err.stack)
+                    cb('Unable to find item. ', err.stack)
+                }
+                else {
+                    self.itemcache = result; //In theory this is pretty non-destructive.
+                    cb(JSON.stringify(result), null)
+                }
+            });
+            console.log(query.sql)
+        }
+        if(this.stype == 's3'){
+            return;
+        }
+    }
+
     ///Pass in a property to compare, an operation, and a comparator value.
-    _get_items(_prop, _operation, _comp, cb){
+    _get_items_prop(_prop, _operation, _comp, cb){
         if(this.stype == 'mysql'){
             var target_location = (_item.location) ? _item.location : this.location
             var _sqlstr = 'SELECT * FROM ' + target_location + ' WHERE ' + _prop + ' '+ _operation + ' '+ _comp;

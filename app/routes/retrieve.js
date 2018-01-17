@@ -6,12 +6,12 @@ var s3 = new AWS.S3();
 
 //TODO cache stuff, cache newest timestamp etc.
 router.get('/', function(req, res, next) {
-    if(req.query.current){
-        _dp._get_current(true, function(data){
-            //TODO: send most recent copy from memory
-            res.send(JSON.stringify(data))
-        })
-    }
+    // if(req.query.current){
+    //     _dp._get_current(true, function(data){
+    //         //TODO: send most recent copy from memory
+    //         res.send(JSON.stringify(data))
+    //     })
+    // }
     if(req.query.latest){
         _dp._get_latest(true, function(data){
             res.send(JSON.stringify(data))
@@ -27,7 +27,7 @@ router.get('/', function(req, res, next) {
         })
     }
     } else{
-        _dp._get_items(req.targetprop, '>', req.compval, function(data){
+        _dp._get_items_prop(req.targetprop, '>', req.compval, function(data){
             res.send(JSON.stringify(data))
         })
     }
