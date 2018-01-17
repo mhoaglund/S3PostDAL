@@ -93,11 +93,21 @@ var latestconfiguration = {
     'd4':'bf3c65d4-c43a-4772-a904-21af56ef3108',
     'd5':'84d2bf5b-685f-411d-b22d-2fbb35594fb7'
 }
-var recent_hist = [latestconfiguration]
+var recent_hist = []
 function applytoRealtimeStack(packet){
-    var delta_applied = {'id':UUID.v4()}
+    //recent_hist.push(JSON.parse(JSON.stringify(latestconfiguration)));
+    var delta_applied = JSON.parse(JSON.stringify(latestconfiguration));
+    delta_applied.id = UUID.v4(); //fresh ID
     //TODO parse incoming packet against latest configuration, update it, push a copy to the recent history array.
-    recent_hist.push(delta_applied)
+    _.each(packet.moves, function(move){
+        var _prev = JSON.parse(JSON.stringify(delta_applied[move.to])); //sloppy copy
+        var _curr = JSON.parse(JSON.stringify(move.item));
+        delta_applied[move.from] = _prev; //swap from
+        delta_applied[move.to] = _curr; //swap to
+    })
+    
+    latestconfiguration = delta_applied;
+    recent_hist.push(JSON.parse(JSON.stringify(latestconfiguration)));
 }
 
 //given an object with a list of properties that may or may not have a record id as the value,
