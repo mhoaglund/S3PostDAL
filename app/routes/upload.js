@@ -64,6 +64,10 @@ router.get('/recache', function(req,res,next){
     });
 })
 
+router.get('/tasklist', function(req,res,next){
+    res.send(JSON.stringify(recent_hist));
+})
+
 //Add group name
 router.post('/org', require('connect-ensure-login').ensureLoggedIn(), function(req,res,next){
     
@@ -71,6 +75,7 @@ router.post('/org', require('connect-ensure-login').ensureLoggedIn(), function(r
 
 var latestconfiguration = {
     'board':[4,5],
+    'enacted':false,
     'id': UUID.v4(),
     'a1':'dbb730bf-2169-48a4-8655-1d0b941a1acf',
     'a2':'43da7073-4eef-43c5-b59d-984b72dc3b35',
