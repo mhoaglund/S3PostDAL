@@ -7,6 +7,7 @@ var AWS = require('aws-sdk');
 var multerS3 = require('multer-s3');
 var _ = require('underscore');
 var s3 = new AWS.S3();
+var moment = require('moment');
 
 if(_dp.stype == 's3'){
     s3share = multer({
@@ -65,7 +66,22 @@ router.get('/recache', function(req,res,next){
 })
 
 router.get('/tasklist', function(req,res,next){
-    res.send(JSON.stringify(recent_hist));
+    res.send(JSON.stringify(deltas));
+})
+
+router.get('/tasklist/enact', function(req,res,next){
+    if(req.query.deltaid){
+        var matched = _.find(deltas, function(_delta){
+            return _delta.id == req.query.deltaid
+        })
+        if(matched){
+            matched.enacted = true;
+            res.send({'success':true, 'msg':'Marked an order enacted.'})
+        } else {
+            res.send({'success':false, 'msg':'Delta id not found.'})
+        }
+    }
+
 })
 
 //Add group name
@@ -75,8 +91,8 @@ router.post('/org', require('connect-ensure-login').ensureLoggedIn(), function(r
 
 var latestconfiguration = {
     'board':[4,5],
-    'enacted':false,
     'id': UUID.v4(),
+    'timestamp': moment().format('MM/DD/YYYY h:mm a'),
     'a1':'dbb730bf-2169-48a4-8655-1d0b941a1acf',
     'a2':'43da7073-4eef-43c5-b59d-984b72dc3b35',
     'a3':'3fc60d42-a0a3-4b21-8799-07a15fdbf7ff',
@@ -99,10 +115,17 @@ var latestconfiguration = {
     'd5':'84d2bf5b-685f-411d-b22d-2fbb35594fb7'
 }
 var recent_hist = []
+var deltas = []
 function applytoRealtimeStack(packet){
     //recent_hist.push(JSON.parse(JSON.stringify(latestconfiguration)));
+    var newid = UUID.v4();
+    packet.enacted = false;
+    packet.id = newid //matched pairs of ids for deltas and configurations
+    packet.timestamp = moment().format('MM/DD/YYYY h:mm a');
+    deltas.push(packet);
     var delta_applied = JSON.parse(JSON.stringify(latestconfiguration));
-    delta_applied.id = UUID.v4(); //fresh ID
+    delta_applied.id = newid //fresh ID
+    delta_applied.timestamp = moment().format('MM/DD/YYYY h:mm a'),
     //TODO parse incoming packet against latest configuration, update it, push a copy to the recent history array.
     _.each(packet.moves, function(move){
         var _prev = JSON.parse(JSON.stringify(delta_applied[move.to])); //sloppy copy
