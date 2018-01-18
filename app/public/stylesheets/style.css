@@ -343,6 +343,25 @@ p:last-child{
       box-sizing: border-box;
       border-collapse: collapse;
     }
+    
+  .object-array.underlay,
+  .object-array.overlay{
+    position: absolute;
+    top: 36px;
+    left: 0px;
+    width: 100%;
+  }
+
+  .detailpane{
+    width: 80%;
+    height: 65%;
+    position: fixed;
+    top: 15%;
+    left: 10%;
+    background: white;
+    border: 1px solid black;
+    flex-flow: flex column;
+  }
 }
 
 .gridhost .tile.animate  {
