@@ -111,8 +111,15 @@ p:last-child{
     .change-order.closed .gridhost .marker,
     .change-order.closed .rules span{display: none;}
     .change-order.closed .thesis{display:none;}
-    .change-order.closed h2, .change-order.closed span, .change-order.drowsy h2, .change-order.drowsy span{font-size: 0.8rem;}
+    .change-order.closed h2, .change-order.closed span, .change-order.drowsy h2, .change-order.drowsy span, .change-order span, .change-order p{font-size: 1.2rem;}
+    .change-order p{
+      -webkit-margin-before: 0px;
+      margin: 0px;
+    }
 
+    #overlay.change-order p{
+      font-weight: bold;
+    }
     .change-order.drowsy .gridhost{
       height: auto;      
     }
@@ -191,6 +198,7 @@ p:last-child{
     }
 
     .object-main{
+      background-position: center center;
       background-color: rgb(255, 238, 238);
       width: 100%;
       height: 100%;
@@ -216,7 +224,7 @@ p:last-child{
       position: absolute;
       top: 0;
       left: 0;
-      stroke-width: 6;
+      stroke-width: 3;
       opacity: 1;
       z-index: 15;
     }
@@ -240,6 +248,25 @@ p:last-child{
       margin-left: -29px;
       top: 0;
       left: 0;
+    }
+
+    .mainlist .hidesmall{
+      display:none;
+    }
+
+    .mainlist .breaksmall{
+      width: 227px;
+    }
+
+    .mainlist{
+      margin-bottom: 500px;
+    }
+
+    #overlay .top{
+      left: 8px;
+      position: absolute;
+      bottom: 8px;
+      right: 8px;
     }
     
   /*End Structural Stuff*/
