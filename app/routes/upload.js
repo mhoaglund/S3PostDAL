@@ -7,7 +7,7 @@ var AWS = require('aws-sdk');
 var multerS3 = require('multer-s3');
 var _ = require('underscore');
 var s3 = new AWS.S3();
-var moment = require('moment');
+var moment = require('moment-timezone');
 
 if(_dp.stype == 's3'){
     s3share = multer({
@@ -101,7 +101,7 @@ router.post('/org', require('connect-ensure-login').ensureLoggedIn(), function(r
 var latestconfiguration = {
     'board':[4,5],
     'id': UUID.v4(),
-    'timestamp': moment().format('MM/DD/YYYY h:mm a'),
+    'timestamp': moment().tz('America/Chicago').format('MM/DD/YYYY h:mm a'),
     'a1':'dbb730bf-2169-48a4-8655-1d0b941a1acf',
     'a2':'43da7073-4eef-43c5-b59d-984b72dc3b35',
     'a3':'3fc60d42-a0a3-4b21-8799-07a15fdbf7ff',
@@ -131,11 +131,11 @@ function applytoRealtimeStack(packet){
     var newid = UUID.v4();
     packet.enacted = false;
     packet.id = newid //matched pairs of ids for deltas and configurations
-    packet.timestamp = moment().format('MM/DD/YYYY h:mm a');
+    packet.timestamp = moment().tz('America/Chicago').format('MM/DD/YYYY h:mm a');
     deltas.push(packet);
     var delta_applied = JSON.parse(JSON.stringify(latestconfiguration));
     delta_applied.id = newid //fresh ID
-    delta_applied.timestamp = moment().format('MM/DD/YYYY h:mm a'),
+    delta_applied.timestamp = moment().tz('America/Chicago').format('MM/DD/YYYY h:mm a'),
     //TODO parse incoming packet against latest configuration, update it, push a copy to the recent history array.
     _.each(packet.moves, function(move){
         var _prev = JSON.parse(JSON.stringify(delta_applied[move.to])); //sloppy copy
