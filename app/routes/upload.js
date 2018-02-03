@@ -78,8 +78,8 @@ function TidyData(query, callback){
         var packet = {};
         for (var property in query){
             if(query[property]){
-                var arr = query[property].split(","); //break up CSLs
-                if(arr.length > 1){
+                var arr = query[property].split(","); //break up CSLs. This accidentally breaks apart binomial locations
+                if(arr.length > 1 & property != 'momentwhere'){
                     var newarr = [];
                     for (var i = 0; i < arr.length; i++) {
                         newarr[i] = arr[i].trim();

@@ -21,7 +21,7 @@ else{
 }
 
 var fs = require('fs');
-var dpconfig = JSON.parse(fs.readFileSync('./app/config.json', 'utf8'));
+var dpconfig = JSON.parse(fs.readFileSync('./app/config_alt.json', 'utf8'));
 _dp = new provider.DataProvider(dpconfig)
 
 var express = require('express');

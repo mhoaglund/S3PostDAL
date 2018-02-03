@@ -53,7 +53,7 @@ function retrieveOrgMap(cb){
         else{
             var _str = _mapfile.Body.toString('utf-8');
             var _jsobj = JSON.parse(_str);
-            return cb(null, _jsobj['groups']);
+            return cb(null, _jsobj['groups']); //TODO return the whole thing
         }
     })
 }
@@ -61,15 +61,16 @@ function retrieveOrgMap(cb){
 var testmain = {}
 var testall = {}
 var manifest = []
+//orgmap is an array of objects that look like {name:"", timestamp:"(unix)"}
 function compose_alt(_map, _cb){
     var i =_map.length;
     _map.forEach(function(_group){
-        getKeysForProject(_dp.location, _group, function(_data){
-            getObjects(_dp.location, _group, _data, function(projectdata){
+        getKeysForProject(_dp.location, _group.name, function(_data){
+            getObjects(_dp.location, _group.name, _data, function(projectdata){
                 i--;
                 console.log(i)
-                if(projectdata.main.Items.length > 0) testmain[_group] = {Group:_group, Items:projectdata.main.Items}
-                if(projectdata.all.Items.length > 0) testall[_group] = {Group:_group, Items:projectdata.all.Items}
+                if(projectdata.main.Items.length > 0) testmain[_group.name] = {Group:_group.name, Timestamp:_group.timestamp, Items:projectdata.main.Items}
+                if(projectdata.all.Items.length > 0) testall[_group.name] = {Group:_group.name, Timestamp:_group.timestamp, Items:projectdata.all.Items}
                 if(i==0) {
                     //console.dir(testmain)
                     var payload = {'Groups':_.values(testmain)};
