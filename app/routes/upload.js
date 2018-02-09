@@ -92,6 +92,7 @@ function TidyData(query, callback){
         }
         delete packet['callback'];
         delete packet['_'];
+        delete packet['momentauth'];
         callback(JSON.stringify(packet, null, 4));
     } else{
         var packet = {};
