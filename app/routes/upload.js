@@ -99,29 +99,29 @@ router.post('/org', require('connect-ensure-login').ensureLoggedIn(), function(r
 })
 
 var latestconfiguration = {
-    'board':[4,5],
+    'board':[5,4],
     'id': UUID.v4(),
     'timestamp': moment().tz('America/Chicago').format('MM/DD/YYYY h:mm a'),
     'a1':'dbb730bf-2169-48a4-8655-1d0b941a1acf',
     'a2':'43da7073-4eef-43c5-b59d-984b72dc3b35',
     'a3':'3fc60d42-a0a3-4b21-8799-07a15fdbf7ff',
     'a4':'52bac571-07df-470f-ad1c-f73d6b9744e8',
-    'a5':'7bfa590c-b633-4593-b229-f4f3c43141a4',
-    'b1':'560d58c1-ad6a-4a7d-8f65-c698c85420d8',
-    'b2':'ffd1d8d7-07f6-46c4-840b-82182fceaf36',
-    'b3':'',
+    'b1':'7bfa590c-b633-4593-b229-f4f3c43141a4',
+    'b2':'560d58c1-ad6a-4a7d-8f65-c698c85420d8',
+    'b3':'ffd1d8d7-07f6-46c4-840b-82182fceaf36',
     'b4':'',
-    'b5':'8f2d7573-117f-4fc4-bcdf-cff49c493e8b',
-    'c1':'c8c1db8e-22ac-41a0-9f88-17ed45303365',
-    'c2':'e510ab82-3d5c-4dda-9fe8-1d3d85b9904d',
-    'c3':'',
-    'c4':'e58f2faf-ec61-4e0c-82d3-b537904255d1',
-    'c5':'a8964b2e-5522-44c5-ac98-a1f18eae0e9f',
+    'c1':'',
+    'c2':'',
+    'c3':'c8c1db8e-22ac-41a0-9f88-17ed45303365',
+    'c4':'e510ab82-3d5c-4dda-9fe8-1d3d85b9904d',
     'd1':'',
-    'd2':'8b60201f-52f5-449f-9345-249ba7c7bc03',
-    'd3':'ba32f731-d406-490e-8a02-34fc59a87715',
-    'd4':'bf3c65d4-c43a-4772-a904-21af56ef3108',
-    'd5':'84d2bf5b-685f-411d-b22d-2fbb35594fb7'
+    'd2':'e58f2faf-ec61-4e0c-82d3-b537904255d1',
+    'd3':'a8964b2e-5522-44c5-ac98-a1f18eae0e9f',
+    'd4':'',
+    'e1':'8b60201f-52f5-449f-9345-249ba7c7bc03',
+    'e2':'ba32f731-d406-490e-8a02-34fc59a87715',
+    'e3':'bf3c65d4-c43a-4772-a904-21af56ef3108',
+    'e4':'84d2bf5b-685f-411d-b22d-2fbb35594fb7'
 }
 var recent_hist = []
 var full_recent_hist = []
@@ -179,7 +179,7 @@ function hydrateDelta(delta){
         'supplement':delta.supplement, 
         'idcolor':'#CD5555', 
         'timestamp':delta.timestamp, 
-        'board':[4,5], moves:delta.moves
+        'board':[5,4], moves:delta.moves
     };
 }
 

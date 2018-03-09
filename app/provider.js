@@ -32,6 +32,18 @@ class DataProvider{
             this.timestamp_field = _configdata.timestampfield
             this.settingstable = _configdata.auxtable
             this.itemcache = [] //should be more generalized, but right now is implemented spec. with regard to The Shallows
+            var _self = this;
+            setInterval(function () {
+                var query = _self.datahandler.query('SELECT 1',
+                    function(err, result) {
+                        if(err) {
+                            console.log(err.stack)
+                            cb('Keepalive error: ', err.stack)
+                        } else{
+                            console.log('kept alive')
+                        }
+                    });
+            }, 5000);
         }
         if(_configdata.sourcetype == 's3'){
             validsource = true

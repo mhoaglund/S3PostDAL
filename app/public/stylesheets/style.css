@@ -155,6 +155,7 @@ p:last-child{
         border-collapse: collapse;
         opacity: 1;
         padding: 4px;
+        margin-top: 8px;
     }
 
   .object-array.underlay,
