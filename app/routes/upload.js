@@ -46,8 +46,6 @@ if(_dp.stype == 's3'){
 }
 
 router.get('/latest', function(req,res,next){
-    //Just send the latest configuration.
-    //TODO Somehow zip this up against the objects in the db.
     if(_dp.itemcache.length == 0){
         _dp._get_table_as_list('objects', function(data, err){
             if(err) console.log(err)
@@ -58,8 +56,6 @@ router.get('/latest', function(req,res,next){
 })
 
 router.get('/recent', function(req,res,next){
-    //Just send the latest configuration.
-    //TODO Somehow zip this up against the objects in the db.
     res.send(full_recent_hist);
 })
 
@@ -67,6 +63,7 @@ router.get('/latestdelta', function(req,res,next){
     res.send(full_recent_hist[0]);
 })
 
+//Need a good docstring for this fucking thing.
 router.get('/recache', function(req,res,next){
     _dp._get_table_as_list('objects', function(data, err){
         if(err) console.log(err)
@@ -74,6 +71,7 @@ router.get('/recache', function(req,res,next){
     });
 })
 
+//This endpoint is for an auxiliary way of operating, with a person acting as an authenticator.
 router.get('/tasklist', function(req,res,next){
     res.send(JSON.stringify(deltas));
 })
@@ -180,7 +178,8 @@ function hydrateDelta(delta){
         'supplement':delta.supplement, 
         'idcolor':'#CD5555', 
         'timestamp':delta.timestamp, 
-        'board':[5,4], moves:delta.moves
+        'board':[5,4], moves:delta.moves,
+        'thesis':delta.thesis
     };
 }
 
@@ -210,6 +209,9 @@ function uploadData(data, cb){
     });
 }
 
+//This is too bifurcated.
+//TODO: parameterize this more to operate from a user-designated policy doc.
+//TODO: maybe move this to the data provider.
 function TidyData(query, callback){
     if(_dp.stype == 's3'){
         var packet = {};
