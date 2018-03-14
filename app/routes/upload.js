@@ -101,6 +101,7 @@ router.post('/org', require('connect-ensure-login').ensureLoggedIn(), function(r
 var latestconfiguration = {
     'board':[5,4],
     'id': UUID.v4(),
+    'sn':0,
     'timestamp': moment().tz('America/Chicago').format('MM/DD/YYYY h:mm a'),
     'a1':'dbb730bf-2169-48a4-8655-1d0b941a1acf',
     'a2':'43da7073-4eef-43c5-b59d-984b72dc3b35',
@@ -228,6 +229,7 @@ function TidyData(query, callback){
         }
         delete packet['callback'];
         delete packet['_'];
+        packet.sn = _dp._refresh_serial_number_count();
         callback(JSON.stringify(packet, null, 4));
     } else{
         var packet = {};

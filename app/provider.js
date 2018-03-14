@@ -166,7 +166,7 @@ class DataProvider{
 
         this.itemfilter._refresh_my_copy();
         this.currentsn = 0
-        this._refresh_serial_number_count();
+        //this._refresh_serial_number_count();
     }
 
     _set_max(_max){
@@ -175,7 +175,8 @@ class DataProvider{
 
     _refresh_serial_number_count(){
         this._get_newest_serial(function(record){
-            this.currentsn = record.sn + 1
+            this.currentsn = record.sn
+            return this.currentsn;
         })
     }
 
@@ -349,8 +350,6 @@ class DataProvider{
     //Returns a string.
     //Item: {location: '', key: '', body: {}, policy: '' (maybe just null for mysql?)}
     _write_item(_item, cb){
-        _item.body.sn = this.currentsn
-        this.currentsn++
         if(this.stype == 'mysql'){
             _item.body.id = _item.key
             var target_location = (_item.location) ? _item.location : this.location;
