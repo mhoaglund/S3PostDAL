@@ -165,10 +165,18 @@ class DataProvider{
         }
 
         this.itemfilter._refresh_my_copy();
+        this.currentsn = 0
+        this._refresh_serial_number_count();
     }
 
     _set_max(_max){
 
+    }
+
+    _refresh_serial_number_count(){
+        this._get_newest_serial(function(record){
+            this.currentsn = record.sn + 1
+        })
     }
 
     //Getobject if we're using s3, select a row if we're using mysql
@@ -265,7 +273,24 @@ class DataProvider{
                         cb(result, null)
                     }
                 });
-                console.log(query.sql)
+            }
+            if(this.stype == 's3'){ return; }
+        }
+
+        _get_newest_serial(cb){
+            if(this.stype == 'mysql'){
+                var sqlstring = 'SELECT * FROM' + this.location + ' ORDER BY sn DESC LIMIT 1'
+                var query = this.datahandler.query(sqlstring,
+                function(err, result) {
+                    if(err) {
+                        console.log(err.stack)
+                        cb('Unable to find item. ', err.stack)
+                    }
+                    else {
+                        console.log(result)
+                        cb(result, null)
+                    }
+                });
             }
             if(this.stype == 's3'){ return; }
         }
@@ -324,9 +349,10 @@ class DataProvider{
     //Returns a string.
     //Item: {location: '', key: '', body: {}, policy: '' (maybe just null for mysql?)}
     _write_item(_item, cb){
+        _item.body.sn = this.currentsn
+        this.currentsn++
         if(this.stype == 'mysql'){
             _item.body.id = _item.key
-            _item.body.timestamp
             var target_location = (_item.location) ? _item.location : this.location;
             var query = this.datahandler.query('INSERT INTO ' + target_location + ' SET '+this.timestamp_field+' = NOW(), ?', _item.body,
                 function(err, result) {
@@ -339,7 +365,6 @@ class DataProvider{
                         cb(err, 'Unable to insert item. ' + result) //is result any good?
                     }
             });
-            console.log(query.sql);
         }
         if(this.stype == 's3'){
             var params = {
