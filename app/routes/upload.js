@@ -96,6 +96,35 @@ router.post('/org', require('connect-ensure-login').ensureLoggedIn(), function(r
     
 })
 
+var objectCache = {}
+function updateObjectCache(cb){
+    _dp._get_table_as_list('objects', function(data, err){
+        if(err) cb(false, err)
+        else{
+            //TODO: for each object which is displayed, we save a copy.
+            if(data){
+                objectCache = {} //is this right?
+                _.each(data, function(row){
+                    objectCache[row.id] = row
+                })
+                cb(true, null)
+            }
+        }
+    });
+}
+
+//TODO: get latest change order, parse against which objects are actually on display, zip up a good starting point
+function determineStartingPoint(){
+    updateObjectCache(function(success, err){
+        if(success){
+            _dp._get_latest(true, function(data){
+                //data is the newest change order, but it just contains a delta.
+            })
+        }
+    })
+}
+
+//TODO: obviate the inline data below
 var latestconfiguration = {
     'board':[5,4],
     'id': UUID.v4(),
@@ -125,6 +154,7 @@ var latestconfiguration = {
 var recent_hist = []
 var full_recent_hist = []
 var deltas = []
+//TODO: this function isn't so great! need a docstring and a refactor.
 function applytoRealtimeStack(packet){
     //recent_hist.push(JSON.parse(JSON.stringify(latestconfiguration)));
     var newid = UUID.v4();
@@ -144,6 +174,7 @@ function applytoRealtimeStack(packet){
     })
     
     latestconfiguration = delta_applied;
+    //TODO here: write latestconfiguration to a row in the db just as a caching measure.
     recent_hist.push(JSON.parse(JSON.stringify(latestconfiguration)));
     full_recent_hist.unshift(hydrateDelta(packet));
 }
