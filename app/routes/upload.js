@@ -63,7 +63,7 @@ router.get('/latestdelta', function(req,res,next){
     res.send(full_recent_hist[0]);
 })
 
-//Need a good docstring for this fucking thing.
+//How is this useful?
 router.get('/recache', function(req,res,next){
     _dp._get_table_as_list('objects', function(data, err){
         if(err) console.log(err)
@@ -76,19 +76,11 @@ router.post('/org', require('connect-ensure-login').ensureLoggedIn(), function(r
     
 })
 
-var objectCache = {}
 function updateObjectCache(cb){
     _dp._get_table_as_list('objects', function(data, err){
         if(err) cb(false, err)
         else{
-            //TODO: for each object which is displayed, we save a copy.
-            if(data){
-                objectCache = {} //is this right?
-                _.each(data, function(row){
-                    objectCache[row.id] = row
-                })
-                cb(true, null)
-            }
+            cb(true, null)
         }
     });
 }
@@ -100,6 +92,7 @@ function determineStartingPoint(){
             _dp._get_latest(true, function(data){
                 //data is the newest change order, but it just contains a delta.
             })
+            //_dp.itemcache
         }
     })
 }

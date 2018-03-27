@@ -224,7 +224,7 @@ class DataProvider{
                     cb('Unable to find item. ', err.stack)
                 }
                 else {
-                    self.itemcache = result; //In theory this is pretty non-destructive.
+                    self.itemcache = result; //TODO: improve this cache object so it's more general-purpose
                     cb(JSON.stringify(result), null)
                 }
             });
