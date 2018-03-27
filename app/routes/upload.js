@@ -46,12 +46,12 @@ if(_dp.stype == 's3'){
 }
 
 router.get('/latest', function(req,res,next){
-    if(_dp.itemcache.length == 0){
+    if(_dp.itemcache['objects'].length == 0){
         _dp._get_table_as_list('objects', function(data, err){
             if(err) console.log(err)
             else console.log('updated itemcache')
             res.send(hydrateConfigManifest(latestconfiguration));
-        });
+        }, true);
     } else res.send(hydrateConfigManifest(latestconfiguration));
 })
 
@@ -68,7 +68,7 @@ router.get('/recache', function(req,res,next){
     _dp._get_table_as_list('objects', function(data, err){
         if(err) console.log(err)
         else res.send('Cache updated successfully.')
-    });
+    }, true);
 })
 
 //Add group name
@@ -82,10 +82,10 @@ function updateObjectCache(cb){
         else{
             cb(true, null)
         }
-    });
+    }, true);
 }
 
-//TODO: get latest change order, parse against which objects are actually on display, zip up a good starting point
+//TODO: get current state, parse against which objects are actually on display, zip up a good starting point
 function determineStartingPoint(){
     updateObjectCache(function(success, err){
         if(success){
@@ -139,16 +139,20 @@ function applytoRealtimeStack(packet){
     delta_applied.id = newid
     delta_applied.timestamp = moment().tz('America/Chicago').format('MM/DD/YYYY h:mm a')
 
-    //TODO parse incoming packet against latest configuration, update it, push a copy to the recent history array.
     _.each(packet.moves, function(move){
-        var _prev = JSON.parse(JSON.stringify(delta_applied[move.to])); //sloppy copy
+        var _prev = JSON.parse(JSON.stringify(delta_applied[move.to])); //shitty copy
         var _curr = JSON.parse(JSON.stringify(move.item));
         delta_applied[move.from] = _prev; //swap from
         delta_applied[move.to] = _curr; //swap to
     })
     
     latestconfiguration = delta_applied;
-    //TODO here: write latestconfiguration to a row in the db just as a caching measure.
+    _dp._update_item({'id':_dp.mainrecord, 'name':'current state', 'location':_dp.settingstable, 'data':latestconfiguration}, function(msg, err){
+        if(err){ 
+            console.log(err)
+        }
+        console.log(msg)
+    }, true)
 }
 
 //given an object with a list of properties that may or may not have a record id as the value,
@@ -161,7 +165,7 @@ function hydrateConfigManifest(config){
             if(v != ''){
                 var object_location = k;
                 //got an object id here
-                var obj_record = _.find(_dp.itemcache, function(item){
+                var obj_record = _.find(_dp.itemcache['objects'], function(item){
                     return item.id == v;
                 })
                 if(obj_record){

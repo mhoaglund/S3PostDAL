@@ -212,7 +212,7 @@ class DataProvider{
         }
     }
 
-    _get_table_as_list(_table, cb){
+    _get_table_as_list(_table, cb, cache = false){
         var self = this;
         if(this.stype == 'mysql'){
             var _sqlstr = 'SELECT * FROM ' + _table;
@@ -224,7 +224,9 @@ class DataProvider{
                     cb('Unable to find item. ', err.stack)
                 }
                 else {
-                    self.itemcache = result; //TODO: improve this cache object so it's more general-purpose
+                    if(cache){
+                        self.itemcache._table = result;
+                    }
                     cb(JSON.stringify(result), null)
                 }
             });
@@ -385,14 +387,11 @@ class DataProvider{
         }
     }
 
-    //TODO: method for composing a 'latest snapshot' according to a policy
-    
     _update_item(_item, cb, verify = false){
         if(this.stype == 'mysql'){
             var values = []
-            var qitems = _unzip(_item.body, ' = ?, ')
+            var qitems = this._unzip(_item.body, ' = ?, ')
             var target_location = (_item.location) ? _item.location : this.location
-            //make sure 
             if(verify){
                 this._get_item(_item, function(record, err){
                     if(!record){
@@ -469,18 +468,6 @@ class DataProvider{
         if(_should_trim) concated_property_names = concated_property_names.replace(/(^[,\s]+)|([,\s]+$)/g, '');
         return {'props': concated_property_names, 'vals': array_of_values}
     }
-
-    ///If this storage solution involves serialized records that need to be collated into a 'current state' record, this intakes a policy function and enacts it against a series of records.
-    //Where is the source of truth here?
-    _compress_serial_records(_items){
-        var self = this;
-        //this.mainrecord
-        //this.settingstable
-        this._update_item({'id':this.mainrecord, 'location':this.settingstable, 'items':_items}, function(data){
-
-        }, true)
-    }
-
 }
 
 module.exports.DataProvider = DataProvider
