@@ -71,26 +71,6 @@ router.get('/recache', function(req,res,next){
     });
 })
 
-//This endpoint is for an auxiliary way of operating, with a person acting as an authenticator.
-router.get('/tasklist', function(req,res,next){
-    res.send(JSON.stringify(deltas));
-})
-
-router.get('/tasklist/enact', function(req,res,next){
-    if(req.query.deltaid){
-        var matched = _.find(deltas, function(_delta){
-            return _delta.id == req.query.deltaid
-        })
-        if(matched){
-            matched.enacted = true;
-            res.send({'success':true, 'msg':'Marked an order enacted.'})
-        } else {
-            res.send({'success':false, 'msg':'Delta id not found.'})
-        }
-    }
-
-})
-
 //Add group name
 router.post('/org', require('connect-ensure-login').ensureLoggedIn(), function(req,res,next){
     
@@ -153,18 +133,19 @@ var latestconfiguration = {
 }
 var recent_hist = []
 var full_recent_hist = []
-var deltas = []
-//TODO: this function isn't so great! need a docstring and a refactor.
+
+///Creates a fully-hydrated "most current frame" of the array based on a passed in set of Moves,
+///and updates the local list of Movesets and the local list of frames.
 function applytoRealtimeStack(packet){
-    //recent_hist.push(JSON.parse(JSON.stringify(latestconfiguration)));
     var newid = UUID.v4();
-    packet.enacted = false;
-    packet.id = newid //matched pairs of ids for deltas and configurations
-    packet.timestamp = moment().tz('America/Chicago').format('MM/DD/YYYY h:mm a');
-    deltas.push(packet);
-    var delta_applied = JSON.parse(JSON.stringify(latestconfiguration));
-    delta_applied.id = newid //fresh ID
-    delta_applied.timestamp = moment().tz('America/Chicago').format('MM/DD/YYYY h:mm a'),
+    packet.id = newid
+    packet.timestamp = moment().tz('America/Chicago').format('MM/DD/YYYY h:mm a')
+    full_recent_hist.unshift(hydrateDelta(packet));
+
+    var delta_applied = JSON.parse(JSON.stringify(latestconfiguration)); //shitty copy
+    delta_applied.id = newid
+    delta_applied.timestamp = moment().tz('America/Chicago').format('MM/DD/YYYY h:mm a')
+
     //TODO parse incoming packet against latest configuration, update it, push a copy to the recent history array.
     _.each(packet.moves, function(move){
         var _prev = JSON.parse(JSON.stringify(delta_applied[move.to])); //sloppy copy
@@ -175,8 +156,6 @@ function applytoRealtimeStack(packet){
     
     latestconfiguration = delta_applied;
     //TODO here: write latestconfiguration to a row in the db just as a caching measure.
-    recent_hist.push(JSON.parse(JSON.stringify(latestconfiguration)));
-    full_recent_hist.unshift(hydrateDelta(packet));
 }
 
 //given an object with a list of properties that may or may not have a record id as the value,
@@ -209,7 +188,8 @@ function hydrateDelta(delta){
         'supplement':delta.supplement, 
         'idcolor':'#CD5555', 
         'timestamp':delta.timestamp, 
-        'board':[5,4], moves:delta.moves,
+        'board':[5,4], 
+        'moves':delta.moves,
         'thesis':delta.thesis
     };
 }
