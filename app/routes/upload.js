@@ -33,12 +33,11 @@ if(_dp.stype == 's3'){
         });
     })
 } else {
-    //TODO: just implement a vanilla multer thing here and add an image upload handler to the dataprovider.
     router.post('/', function (req, res, next) {
         uploadData(req.body, function(err){
             if(err) res.send(err)
             else{
-                applytoRealtimeStack(req.body); //always send back the updated configuration
+                applytoRealtimeStack(req.body);
                 res.send({'success':true, 'msg':'Upload complete'})
             }
         });
@@ -71,11 +70,6 @@ router.get('/recache', function(req,res,next){
     }, true);
 })
 
-//Add group name
-router.post('/org', require('connect-ensure-login').ensureLoggedIn(), function(req,res,next){
-    
-})
-
 function updateObjectCache(cb){
     _dp._get_table_as_list('objects', function(data, err){
         if(err) cb(false, err)
@@ -86,6 +80,7 @@ function updateObjectCache(cb){
 }
 
 //TODO: get current state, parse against which objects are actually on display, zip up a good starting point
+//With the current state stored in the DB, this is only useful for big changes in the set of items.
 function determineStartingPoint(){
     updateObjectCache(function(success, err){
         if(success){
@@ -164,7 +159,6 @@ function hydrateConfigManifest(config){
         else{
             if(v != ''){
                 var object_location = k;
-                //got an object id here
                 var obj_record = _.find(_dp.itemcache['objects'], function(item){
                     return item.id == v;
                 })
