@@ -33,4 +33,12 @@ router.get('/', function(req, res, next) {
     }
 })
 
+//For the glossary ledger
+router.get('/glossary', function(req,res,next){
+    _dp._get_table_as_list('objects', function(data, err){
+        if(err) console.log(err)
+        else res.send(data)
+    }, true);
+})
+
 module.exports = router;
