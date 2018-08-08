@@ -15,7 +15,7 @@ a {
   color: #00B7FF;
 }
 h1, h2{
-  font-family: "ibm-plex-serif", Georgia, Times, serif;
+  font-family: "ibm-plex-sans", Georgia, Times, serif;
 }
 h1,h2,h3,h4,h5,h6{
   -webkit-margin-before: 0em;
@@ -61,8 +61,6 @@ p:last-child{
   #overlay > div.inner.flexfill{
     flex-basis: 100%;
   }
-  .titlecard{
-  }
     .titlecard h1{
       font-size: 2em;
       color: black;
@@ -82,10 +80,11 @@ p:last-child{
 
     .change-order{
       box-sizing: border-box;
-      border: 1px solid grey;
-      padding: 10px;
-      margin-bottom: 12px;
       background-color: #efefef;
+      display: flex;
+      flex-flow: row nowrap;
+      align-items: flex-end;
+      justify-content: flex-end;
     }
 
     .change-order .inner{
@@ -96,7 +95,7 @@ p:last-child{
       /* background-color: cornflowerblue; */
     }
 
-      .change-order.closed .inner{position: static;} 
+      .change-order.closed .inner{position: static;width: 49%;} 
 
     .change-order .thesis p{
       /* column-count: 2;
@@ -110,8 +109,9 @@ p:last-child{
     .change-order.closed .gridhost .tile{display: none; opacity: 0.0; height:0px;}
     .change-order.closed .gridhost .marker,
     .change-order.closed .rules span{display: none;}
+    #overlay .rules{display: none;}
     .change-order.closed .thesis{display:none;}
-    .change-order.closed h2, .change-order.closed span, .change-order.drowsy h2, .change-order.drowsy span, .change-order span, .change-order p{font-size: 1.2rem;}
+    .change-order.closed h2, .change-order.closed span, .change-order.drowsy h2, .change-order.drowsy span, .change-order span, .change-order p{font-size: 0.8rem;}
     .change-order p{
       -webkit-margin-before: 0px;
       margin: 0px;
@@ -155,7 +155,6 @@ p:last-child{
         border-collapse: collapse;
         opacity: 1;
         padding: 4px;
-        margin-top: 8px;
     }
 
   .object-array.underlay,
@@ -251,25 +250,6 @@ p:last-child{
       top: 0;
       left: 0;
     }
-
-    .mainlist .hidesmall{
-      display:none;
-    }
-
-    .mainlist .breaksmall{
-      width: 227px;
-    }
-
-    .mainlist{
-      margin-bottom: 500px;
-    }
-
-    #overlay .top{
-      left: 8px;
-      position: absolute;
-      bottom: 8px;
-      right: 8px;
-    }
     
   /*End Structural Stuff*/
   /*Details*/
@@ -305,8 +285,6 @@ p:last-child{
   top: 10%;
   width: 65%;
   height: 80%;
-  border: 1px solid black;
-  border-right: 0px;
   background: #efefef;
 }
 
@@ -322,9 +300,9 @@ p:last-child{
 
 .marker{
   position: absolute;
-  height: 0.7em;
-  width: 0.7em;
-  border-radius: 0.5em;
+  height: 14px;
+  width: 14px;
+  border-radius: 7px;
   margin-left: -35px;
   margin-top: -33px;
 }
@@ -332,19 +310,19 @@ p:last-child{
 @media screen and (max-width: 1300px){
   #overlay{
     position: fixed;
-    right: 0%;
+    left: 0%;
     top: 20%;
-    width: 65%;
+    width: 50%;
     height: 74%;
-    border: 1px solid black;
-    border-right: 0px;
     background: #efefef;
   }
   #overlay.change-order > div {
       flex-basis: 100%;
+      padding-left: 8px;
   }
   .gridhost{
     width: 100%;
+    margin-left: -4px;
   }
 }
 
@@ -403,7 +381,16 @@ p:last-child{
   animation: vectorfade .7s;
   animation-fill-mode: both
 }
+.overlay_only{
+  display: none;
+}
 
+#overlay .overlay_only{
+  display: block;
+}
+.blurred{
+  filter: blur(4px);
+}
 @keyframes tilefade {
   from {
       filter: blur(10px);
@@ -429,11 +416,6 @@ p:last-child{
 }
 
 /*Glossary stuff*/
-
-.glossary-view{
-  
-}
-
 .txtblack{
   color: black;
   text-shadow: white 1px 1px 4px;

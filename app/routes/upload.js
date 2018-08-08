@@ -45,7 +45,7 @@ if(_dp.stype == 's3'){
 }
 
 router.get('/latest', function(req,res,next){
-    if(_dp.itemcache['objects'].length == 0){
+    if(_dp.itemcache.length == 0){ //TODO revisit whether this is actually okay or if we're firing this all the time.
         _dp._get_table_as_list('objects', function(data, err){
             if(err) console.log(err)
             else console.log('updated itemcache')
@@ -142,7 +142,7 @@ function applytoRealtimeStack(packet){
     })
     
     latestconfiguration = delta_applied;
-    _dp._update_item({'id':_dp.mainrecord, 'name':'current state', 'location':_dp.settingstable, 'data':latestconfiguration}, function(msg, err){
+    _dp._update_item({'id':_dp.mainrecord, 'key':00, 'name':'current state', 'location':_dp.settingstable, 'body':latestconfiguration}, function(msg, err){
         if(err){ 
             console.log(err)
         }

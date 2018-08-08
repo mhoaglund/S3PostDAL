@@ -184,7 +184,7 @@ class DataProvider{
     _get_item(_item, cb){
         if(this.stype == 'mysql'){
             var target_location = (_item.location) ? _item.location : this.location
-            var query = this.datahandler.query('SELECT * FROM' + target_location + ' WHERE ' + this.keyfield + '=' + _item.key,
+            var query = this.datahandler.query('SELECT * FROM ' + target_location + ' WHERE ' + this.keyfield + '=' + _item.key,
             function(err, result) {
                 if(err) {
                     console.log(err.stack)
@@ -225,7 +225,7 @@ class DataProvider{
                 }
                 else {
                     if(cache){
-                        self.itemcache._table = result;
+                        self.itemcache[_table] = result;
                     }
                     cb(JSON.stringify(result), null)
                 }
@@ -282,7 +282,7 @@ class DataProvider{
 
         _get_newest_serial(cb){
             if(this.stype == 'mysql'){
-                var sqlstring = 'SELECT * FROM' + this.location + ' ORDER BY sn DESC LIMIT 1'
+                var sqlstring = 'SELECT * FROM ' + this.location + ' ORDER BY sn DESC LIMIT 1'
                 var query = this.datahandler.query(sqlstring,
                 function(err, result) {
                     if(err) {
@@ -387,16 +387,18 @@ class DataProvider{
         }
     }
 
+    //TODO inspect the current state object we pass in from routes/upload/applytoRealtimeStack. we get bad syntax when we unzip it!
     _update_item(_item, cb, verify = false){
+        var ultimate = this;
         if(this.stype == 'mysql'){
             var values = []
             var qitems = this._unzip(_item.body, ' = ?, ')
             var target_location = (_item.location) ? _item.location : this.location
             if(verify){
                 this._get_item(_item, function(record, err){
-                    if(!record){
-                        //write instead
-                        this._write_item(_item, function(newrecord, err){
+                    if(!record | record.length == 0){
+                        ultimate._write_item(_item, function(newrecord, err){
+                            if(err) console.log(err);
                             if(newrecord) cb("Item was not found. New record written.", null); //does this return all the way out?
                         })
                     } else{
@@ -450,7 +452,7 @@ class DataProvider{
     //Semi-generalized query cleanup helper for unzipping objects into easy queries.
     _unzip(_input_obj, _strjoin, _should_trim){
         var concated_property_names = ''
-        var array_of_values = ''
+        var array_of_values = []
         for (var key in _input_obj) {
             // skip loop if the property is from prototype
             if (!_input_obj.hasOwnProperty(key)) continue;
