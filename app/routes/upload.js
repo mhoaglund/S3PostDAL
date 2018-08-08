@@ -142,7 +142,8 @@ function applytoRealtimeStack(packet){
     })
     
     latestconfiguration = delta_applied;
-    _dp._update_item({'id':_dp.mainrecord, 'key':00, 'name':'current state', 'location':_dp.settingstable, 'body':latestconfiguration}, function(msg, err){
+    //TODO: try without that stringify call, not sure if needed
+    _dp._update_item({'id':_dp.mainrecord, 'key':00, 'location':_dp.settingstable, 'body':{"data":JSON.stringify([latestconfiguration]), "name":"current state", "id":_dp.mainrecord}}, function(msg, err){
         if(err){ 
             console.log(err)
         }

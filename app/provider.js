@@ -387,30 +387,31 @@ class DataProvider{
         }
     }
 
-    //TODO inspect the current state object we pass in from routes/upload/applytoRealtimeStack. we get bad syntax when we unzip it!
+    //TODO re-generalize this to break passed in item into properties and update them individually.
     _update_item(_item, cb, verify = false){
-        var ultimate = this;
+        var self = this;
         if(this.stype == 'mysql'){
             var values = []
-            var qitems = this._unzip(_item.body, ' = ?, ')
             var target_location = (_item.location) ? _item.location : this.location
             if(verify){
                 this._get_item(_item, function(record, err){
                     if(!record | record.length == 0){
-                        ultimate._write_item(_item, function(newrecord, err){
+                        self._write_item(_item, function(newrecord, err){
                             if(err) console.log(err);
                             if(newrecord) cb("Item was not found. New record written.", null); //does this return all the way out?
                         })
                     } else{
-                        var query = this.datahandler.query('UPDATE ' + target_location + ' SET ' + qitems['props'] + ' WHERE id=' + _item.key, qitems['vals'],
+                        //TODO: this implementation has mutated to be specific to updating the current state table, with the way the body is called out. this is tech debt.
+                        var query = self.datahandler.query('UPDATE ' + target_location + ' SET ' + 'data=\'' + _item.body.data + '\', timestamp=NOW() WHERE id=' + _item.key,
                         function(err, result) {
-                            if(!err) {
+                            console.log(query);
+                            if(err) {
                                 console.log(err.stack)
-                                cb('Unable to insert item. ', err.stack)
+                                cb('Unable to update item. ', err.stack)
                             }
                             else {
                                 console.log(result)
-                                cb('Successfully inserted item.', null)
+                                cb('Successfully updated item.', null)
                             }
                         });
                     }
@@ -449,7 +450,7 @@ class DataProvider{
         }
     }
 
-    //Semi-generalized query cleanup helper for unzipping objects into easy queries.
+    //Semi-generalized query cleanup helper for unzipping objects into easy queries. Deprecated?
     _unzip(_input_obj, _strjoin, _should_trim){
         var concated_property_names = ''
         var array_of_values = []
