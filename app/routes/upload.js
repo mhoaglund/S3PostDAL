@@ -49,6 +49,7 @@ router.get('/latest', function(req,res,next){
         _dp._get_table_as_list('objects', function(data, err){
             if(err) console.log(err)
             else console.log('updated itemcache')
+            //TODO retrieve current state row here and assign to latestconfiguration
             res.send(hydrateConfigManifest(latestconfiguration));
         }, true);
     } else res.send(hydrateConfigManifest(latestconfiguration));
@@ -92,7 +93,7 @@ function determineStartingPoint(){
     })
 }
 
-//TODO: obviate the inline data below
+//TODO: get the current state item from the db and flesh this out on start
 var latestconfiguration = {
     'board':[5,4],
     'id': UUID.v4(),
@@ -143,6 +144,7 @@ function applytoRealtimeStack(packet){
     
     latestconfiguration = delta_applied;
     //TODO: try without that stringify call, not sure if needed
+    //This is basically a persistence thing, right?
     _dp._update_item({'id':_dp.mainrecord, 'key':00, 'location':_dp.settingstable, 'body':{"data":JSON.stringify([latestconfiguration]), "name":"current state", "id":_dp.mainrecord}}, function(msg, err){
         if(err){ 
             console.log(err)
@@ -212,8 +214,6 @@ function uploadData(data, cb){
     });
 }
 
-//This is too bifurcated.
-//TODO: parameterize this more to operate from a user-designated policy doc.
 //TODO: maybe move this to the data provider.
 function TidyData(query, callback){
     if(_dp.stype == 's3'){
