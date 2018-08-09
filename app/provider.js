@@ -180,7 +180,11 @@ class DataProvider{
         })
     }
 
-    //Getobject if we're using s3, select a row if we're using mysql
+    /**
+     * //Pass in a keyfield value and location to select an item in the case of sql, or getObject in the case of S3.
+     * @param {*} _item {location: table/bucket, key: key}
+     * @param {*} cb 
+     */
     _get_item(_item, cb){
         if(this.stype == 'mysql'){
             var target_location = (_item.location) ? _item.location : this.location

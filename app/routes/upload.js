@@ -50,9 +50,17 @@ router.get('/latest', function(req,res,next){
             if(err) console.log(err)
             else console.log('updated itemcache')
             //TODO retrieve current state row here and assign to latestconfiguration
-            res.send(hydrateConfigManifest(latestconfiguration));
+            _dp._get_item({location: 'state', key:0}, function(row, err){
+                if(row) {
+                    latestconfiguration = JSON.parse(row[0].data)[0];
+                    console.log(latestconfiguration);
+                }
+                res.send(hydrateConfigManifest(latestconfiguration));
+            })
         }, true);
-    } else res.send(hydrateConfigManifest(latestconfiguration));
+    } else {
+        res.send(hydrateConfigManifest(latestconfiguration));
+    }
 })
 
 router.get('/recent', function(req,res,next){
