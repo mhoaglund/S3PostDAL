@@ -111,22 +111,22 @@ var latestconfiguration = {
     'a2':'0172a51a-1e08-4c3c-87cd-936f0bd887cd',
     'a3':'ab9f4b9e-cfb5-4e06-a18f-63125b49cd44',
     'a4':'a7f1a915-e312-4f35-8c4b-c23f921b083f',
+    'a5':'d1d49278-039c-4daa-b767-5d3e01bd795d',
     'b1':'a0617f38-8125-40e2-965b-6a3c04266903',
     'b2':'640ff7cb-bd04-4260-9dbb-7380f4cd9553',
     'b3':'8e4e1de6-0bc0-4ab5-a950-89cfefb68c54',
-    'b4':'',
+    'b4':'5a599211-32ea-4b62-bda8-acebe45a0496',
+    'b5':'',
     'c1':'',
     'c2':'e192996b-05f3-4038-b348-faa7723350bb',
     'c3':'8f6c2e42-4f32-4ea0-b7a6-274d5c2affe0',
     'c4':'bd6558a6-b6a7-4d69-bc3e-ab4a2cbab3b0',
+    'c5':'',
     'd1':'256b6bfb-a359-4f04-97a4-e9a8b266449d',
     'd2':'f90ad850-7fdd-49f4-9544-9d92e5a76ab9',
     'd3':'da12e6c0-47b8-4064-822c-498150651d8e',
-    'd4':'',
-    'e1':'5a599211-32ea-4b62-bda8-acebe45a0496',
-    'e2':'65ee857f-30b1-4597-8503-f43baf02a573',
-    'e3':'1a4f9652-848d-4dc0-afc6-bcb4dc102acc',
-    'e4':'d1d49278-039c-4daa-b767-5d3e01bd795d'
+    'd4':'65ee857f-30b1-4597-8503-f43baf02a573',
+    'd5':'1a4f9652-848d-4dc0-afc6-bcb4dc102acc'
 }
 var recent_hist = []
 var full_recent_hist = []
