@@ -89,16 +89,12 @@ function makeEnglishSteps(input){
             return item.id == [step.item];
         })
         if(matched){
-            var itemname = matched["name"];
-            var itemsupplement = matched["special"];
             var this_step = stepno + ":Locate the " + matched["name"] + ". Carefully pick it up, and move it to space " + step.to + "." + matched["special"] + "<br/>"
             output += this_step
             stepno++
         }
-
     })
     return output;
 }
-
 
 module.exports = router;
