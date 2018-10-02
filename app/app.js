@@ -1,24 +1,6 @@
 //config
 var nconf = require('nconf');
 var provider = require('./provider.js')
-// if(process.env.bucket){
-//   _OrgField = process.env.orgfield;
-//   _S3Bucket = process.env.bucket;
-//   _OrgMapKey = _OrgField + "map.json";
-//   _MainKey = process.env.mainfile;
-//   _AllKey = process.env.allfile;
-//   _DiffKey = process.env.difffile;
-// }
-// else{
-//   //nconf.file('config.json');
-//   //gotta figure out these globals now
-//   _OrgField = nconf.get('orgfield');
-//   _S3Bucket = nconf.get('bucket');
-//   _OrgMapKey = _OrgField + "map.json"; //array of possible options for organization field
-//   _MainKey = nconf.get('mainfile');
-//   _AllKey = nconf.get('allfile');
-//   _DiffKey = nconf.get('difffile');
-// }
 
 var fs = require('fs');
 var dpconfig = JSON.parse(fs.readFileSync(require('path').resolve(__dirname, 'config.json'), 'utf8'));
