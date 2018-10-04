@@ -76,7 +76,7 @@ function formatData(input){
 }
 
 function prettyDate(){
-    return moment().tz(nconf.get('timezone')).format(nconf.get('datestring'));
+    return moment().tz('America/Chicago').format('dddd, MMMM Do YYYY, h:mm:ss a');
 }
 
 //TODO: run through DB row. for every object involved in the moveset, retrieve supplementary data from the objects table.
@@ -89,7 +89,7 @@ function makeEnglishSteps(input){
             return item.id == [step.item];
         })
         if(matched){
-            var this_step = stepno + ":Locate the " + matched["name"] + ". Carefully pick it up, and move it to space " + step.to + "." + matched["special"] + "<br/>"
+            var this_step = stepno + " :Locate the " + matched["name"] + ". Carefully pick the item(s) up, and move them to space " + step.to + ". " + matched["special"] + "<br/>"
             output += this_step
             stepno++
         }
