@@ -243,6 +243,7 @@ function TidyData(query, callback){
         delete packet['callback'];
         delete packet['_'];
         packet.sn = _dp._refresh_serial_number_count();
+        packet.sn +=1;
         callback(JSON.stringify(packet, null, 4));
     } else{
         var packet = {};
