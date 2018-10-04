@@ -58,7 +58,7 @@ function zipUpObjectInfo(objectinfo, dbrow){
 function formatData(input){
     var output = {
         "Title": "Change Order",
-        "LeftSN": "SN " + input.SN + " ID:" + input.id,
+        "LeftSN": "SN " + input.sn + " ID:" + input.id,
         "ID": input.id,
         "COsteps" : makeEnglishSteps(JSON.parse(input.moves)),
         "Top": "Change Order Directive",
