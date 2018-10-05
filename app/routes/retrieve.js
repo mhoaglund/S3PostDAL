@@ -58,7 +58,7 @@ function zipUpObjectInfo(objectinfo, dbrow){
 function formatData(input){
     var output = {
         "Title": "Change Order",
-        "LeftSN": "SN " + input.sn + " ID:" + input.id,
+        "LeftSN": "ID: " + input.id,
         "ID": input.id,
         "COsteps" : makeEnglishSteps(JSON.parse(input.moves)),
         "Top": "Change Order Directive",
@@ -90,7 +90,7 @@ function makeEnglishSteps(input){
         })
         if(matched){
             var this_step = stepno + " :Locate the " + matched["name"] + ". Carefully pick the item(s) up, and move them to space " + step.to + ". ";
-            if(matched["special"]) this_step += + matched["special"];
+            if(matched["special"]) this_step += matched["special"];
             this_step += "<br/>";
             output += this_step
             stepno++

@@ -130,6 +130,7 @@ var latestconfiguration = {
 }
 var recent_hist = []
 var full_recent_hist = []
+var base_sn = 0;
 
 ///Creates a fully-hydrated "most current frame" of the array based on a passed in set of Moves,
 ///and updates the local list of Movesets and the local list of frames.
@@ -173,9 +174,15 @@ function hydrateConfigManifest(config){
                 var obj_record = _.find(_dp.itemcache['objects'], function(item){
                     return item.id == v;
                 })
+                
                 if(obj_record){
-                    obj_record.current = k;
-                    hydrated.objects.push(obj_record);
+                    var matched = _.find(hydrated.objects, function(item){
+                        return item.id == obj_record.id;
+                    })
+                    if(!matched){
+                        obj_record.current = k;
+                        hydrated.objects.push(obj_record);
+                    }
                 }
             }
         }
@@ -242,8 +249,8 @@ function TidyData(query, callback){
         }
         delete packet['callback'];
         delete packet['_'];
-        packet.sn = _dp._refresh_serial_number_count();
-        packet.sn +=1;
+        base_sn +=1;
+        packet.sn = base_sn;
         callback(JSON.stringify(packet, null, 4));
     } else{
         var packet = {};
