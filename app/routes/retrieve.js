@@ -58,7 +58,7 @@ function zipUpObjectInfo(objectinfo, dbrow){
 function formatData(input){
     var output = {
         "Title": "Change Order",
-        "LeftSN": "ID: " + input.id,
+        "LeftSN": "ID: " + input.id.split('_')[1],
         "ID": input.id,
         "COsteps" : makeEnglishSteps(JSON.parse(input.moves)),
         "Top": "Change Order Directive",
@@ -66,7 +66,7 @@ function formatData(input){
         "Disclaimer": "If you need to move an object to a position within the grid which is already occupied, you may choose between moving the existing object to the position which originally contained the object you are carrying, effectively swapping the two. Alternately, if the object you are carrying can be placed alongside the existing object, they can be left together.",
         "LeftDate" : prettyDate(),
         "SigLabel" : "Performer Signature",
-        "SigningInstructions" : "In the large box below, please make a unique identifying mark using the pen on the kiosk you retrieved this sheet from. It can be your initials, a drawing, or a simpler mark. Thank You!",
+        "SigningInstructions" : "In the large box below, please make a unique identifying mark using the pen on the kiosk you retrieved this sheet from. It can be your initials, a drawing, or a simpler mark. Once you've made your mark, tear this sheet in two at the perforation in the center. The top of the sheet is yours to keep. Please place the bottom half of the sheet in the container below the kiosk you collected this sheet from. Thank you!",
         "ComposedBy": "Order Composed By: " + input.author
     }
     _.each(JSON.parse(input.moves), function(step){
