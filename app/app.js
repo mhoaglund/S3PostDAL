@@ -1,10 +1,17 @@
 //config
 var nconf = require('nconf');
 var provider = require('./provider.js')
-
+var devices = require('./devices.js')
 var fs = require('fs');
+
 var dpconfig = JSON.parse(fs.readFileSync(require('path').resolve(__dirname, 'config.json'), 'utf8'));
 _dp = new provider.DataProvider(dpconfig)
+
+var deviceconfig = JSON.parse(fs.readFileSync(require('path').resolve(__dirname, 'pconfig.json'), 'utf8'));
+_devman = new devices.DeviceManager(deviceconfig, function(){
+  console.log('device management online');
+})
+
 
 var express = require('express');
 var path = require('path');

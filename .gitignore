@@ -58,6 +58,7 @@ typings/
 .env
 
 config.json
+pconfig.json
 config_alt.json
 auth.json
 groupmap.json
