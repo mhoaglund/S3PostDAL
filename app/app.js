@@ -10,7 +10,23 @@ _dp = new provider.DataProvider(dpconfig)
 var deviceconfig = JSON.parse(fs.readFileSync(require('path').resolve(__dirname, 'pconfig.json'), 'utf8'));
 _devman = new devices.DeviceManager(deviceconfig, function(){
   console.log('device management online');
+  _devman.canSend = true;
+  _devman._dailySetup();
 })
+
+var schedule = require('node-schedule-tz');
+ 
+var _morning = schedule.scheduleJob('0 8 * * *', 'America/Chicago', function(){
+  console.log('Turning on kiosk lights');
+  _devman.canSend = true;
+  _devman._dailySetup();
+});
+
+var _night = schedule.scheduleJob('0 22 * * *', 'America/Chicago', function(){
+  console.log('Turning off kiosk lights');
+  _devman.canSend = false;
+  _devman._dailyCloseout();
+});
 
 
 var express = require('express');

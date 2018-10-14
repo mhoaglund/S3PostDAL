@@ -49,7 +49,6 @@ router.get('/latest', function(req,res,next){
         _dp._get_table_as_list('objects', function(data, err){
             if(err) console.log(err)
             else console.log('updated itemcache')
-            //TODO retrieve current state row here and assign to latestconfiguration
             _dp._get_item({location: 'state', key:0}, function(row, err){
                 if(row) {
                     latestconfiguration = JSON.parse(row[0].data)[0];

@@ -10,6 +10,7 @@ class DeviceManager{
         this.alldevices = {};
         this.latestevent = null;
         this.trackedevent = null;
+        this.canSend = true;
         this._init(cb)
     }
     _login(cb){
@@ -79,7 +80,9 @@ class DeviceManager{
             stream.on('event', function(data) {
               console.log("Event: ", data);
               if(data.name == eventname){
+                console.log("New paper kiosk status: " + data.data)
                 self.trackedevent = data;
+                self._trigger(data.data);
               }
               self.latestevent = data;
             });
@@ -90,7 +93,7 @@ class DeviceManager{
         var matched = _.find(self.targets, function(device){
             return device.name == _device;
         })
-        var fnPr = particle.callFunction({ deviceId: matched.id, name: _cmd, argument: _arg, auth: self.token });
+        var fnPr = self.particle.callFunction({ deviceId: matched.id, name: _cmd, argument: _arg, auth: self.token });
         fnPr.then(
             function(data) {
                 console.log(_cmd + ' called succesfully:', data);
@@ -98,14 +101,37 @@ class DeviceManager{
                 console.log('An error occurred:', err);
         });
     }
-    _attract(_device, _cmd){
-        //TODO _call adjust-brtns to high, adjust-spd to med
+    _attract(_device){
+        var self = this;
+        if(!self.canSend) return;
+        self._call(_device, 'adjust-brtns', '200');
+        self._call(_device, 'adjust-amp', '45');
     }
-    _attract(_device, _cmd){
-        //TODO _call: adjust-brtns to low, adjust-spd to low
+    _repel(_device){
+        var self = this;
+        if(!self.canSend) return;
+        self._call(_device, 'adjust-brtns', '35');
+        self._call(_device, 'adjust-amp', '75');
     }
-    _pushTablet(){
-        
+    _dailySetup(){
+        var self = this;
+        self._call('paper-kiosk', 'adjust-brtns', 'med');
+        self._call('paper-kiosk', 'adjust-amp', '100');
+        self._call('tablet-kiosk', 'adjust-brtns', 'med');
+        self._call('tablet-kiosk', 'adjust-amp', '100');
+    }
+    _dailyCloseout(){
+        var self = this;
+        self._call('paper-kiosk', 'adjust-brtns', 'off');
+        self._call('tablet-kiosk', 'adjust-brtns', 'off');
+    }
+    _trigger(data){
+        var self = this;
+        if(data == "full"){
+            self._attract('paper-kiosk')
+        } else if(data == "empty"){
+            self._repel('paper-kiosk')
+        }
     }
 }
 
