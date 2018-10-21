@@ -70,12 +70,18 @@ router.get('/latestdelta', function(req,res,next){
     res.send(full_recent_hist[0]);
 })
 
-//How is this useful?
 router.get('/recache', function(req,res,next){
     _dp._get_table_as_list('objects', function(data, err){
         if(err) console.log(err)
         else res.send('Cache updated successfully.')
     }, true);
+})
+
+//Recalling operating history of the work for rehydration if we need to reboot
+router.get('/recall', function(req,res,next){
+    _dp._get_newer_than({"key":"EMPTY_1c08ad3a-56ac-4828-b4a6-6da5a9c5dc26"}, function(results){
+        console.log(results);
+    })
 })
 
 function updateObjectCache(cb){
@@ -85,19 +91,6 @@ function updateObjectCache(cb){
             cb(true, null)
         }
     }, true);
-}
-
-//TODO: get current state, parse against which objects are actually on display, zip up a good starting point
-//With the current state stored in the DB, this is only useful for big changes in the set of items.
-function determineStartingPoint(){
-    updateObjectCache(function(success, err){
-        if(success){
-            _dp._get_latest(true, function(data){
-                //data is the newest change order, but it just contains a delta.
-            })
-            //_dp.itemcache
-        }
-    })
 }
 
 //TODO: get the current state item from the db and flesh this out on start
@@ -208,7 +201,7 @@ function uploadData(data, cb){
         if(data[_dp.orgfield]){
             itemid = data[_dp.orgfield] + "_" + UUID.v4();
         }
-        else itemid = "EMPTY" + "_" + UUID.v4();
+        else itemid = "SHALLOWS" + "_" + UUID.v4();
     }
     else {
         updating = true;

@@ -1,4 +1,5 @@
 var _ = require('underscore')
+var moment = require('moment');
 
 class DataProvider{
     constructor(_configdata){
@@ -302,27 +303,25 @@ class DataProvider{
             if(this.stype == 's3'){ return; }
         }
 
-        _get_newer_than(_item, _period, cb){
+        _get_newer_than(_item, cb){
+            var self = this;
             if(this.stype == 'mysql'){
-                if(!_item.timestamp){
-                    _get_item({'key':_item.key}, function(record, err){
-                        var target_location = this.location
-                        var sqlstring = 'SELECT * FROM ' + target_location + ' WHERE timestamp > DATE_SUB('+record.timestamp+', INTERVAL 1 '+_period+') ORDER BY timestamp DESC';
-                        var query = this.datahandler.query(sqlstring,
-                            function(err, result) {
-                                if(err) {
-                                    console.log(err.stack)
-                                    cb('Unable to find item. ', err.stack)
-                                }
-                                else {
-                                    console.log(result)
-                                    cb(JSON.stringify(result), null)
-                                }
-                            });
-                        console.log(query.sql)
-                    })
-                }
-                
+                self._get_item({'key':'"'+_item.key+'"'}, function(record, err){
+                    var target_location = self.location
+                    var sqlstring = 'SELECT * FROM ' + target_location + ' WHERE timestamp > "'+ moment(record[0].timestamp).format('Y-MM-DD hh:mm:ss') +'" ORDER BY timestamp DESC';
+                    var query = self.datahandler.query(sqlstring,
+                        function(err, result) {
+                            if(err) {
+                                console.log(err.stack)
+                                cb('Unable to find item. ', err.stack)
+                            }
+                            else {
+                                console.log(result)
+                                cb(result, null)
+                            }
+                        });
+                    console.log(query.sql)
+                })
             }
             if(this.stype == 's3'){ return; }
         }
