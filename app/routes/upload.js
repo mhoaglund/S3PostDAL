@@ -25,7 +25,7 @@ if(_dp.stype == 's3'){
         })
     })
     router.post('/', s3share.single('file'), function (req, res, next) {
-        uploadData(req.body, function(err){
+        uploadData(req.body, function(newid, err){
             if(err) res.send(err)
             else{
                 res.send({'success':true, 'msg':'Upload complete'})
@@ -34,9 +34,10 @@ if(_dp.stype == 's3'){
     })
 } else {
     router.post('/', function (req, res, next) {
-        uploadData(req.body, function(err){
+        uploadData(req.body, function(newid, err){
             if(err) res.send(err)
             else{
+                if(newid) req.body.id = newid;
                 applytoRealtimeStack(req.body);
                 res.send({'success':true, 'msg':'Upload complete'})
             }
@@ -79,10 +80,25 @@ router.get('/recache', function(req,res,next){
 
 //Recalling operating history of the work for rehydration if we need to reboot
 router.get('/recall', function(req,res,next){
-    _dp._get_newer_than({"key":"EMPTY_1c08ad3a-56ac-4828-b4a6-6da5a9c5dc26"}, function(results){
-        console.log(results);
+    updateChangeOrderCache(function(){
+        res.send('Change Order Cache updated successfully.')
     })
 })
+
+function updateChangeOrderCache(cb){
+    _dp._get_newer_than({"key":"EMPTY_1c08ad3a-56ac-4828-b4a6-6da5a9c5dc26"}, function(results){
+        var thing = []
+        results.forEach(function(row){
+            row.board = [5,4];
+            row.idcolor = "#CD5555";
+            row.moves = JSON.parse(row.moves);
+            row.timestamp = moment(row.timestamp).tz('America/Chicago').format('dddd, MMMM Do YYYY, h:mm:ss a');
+            thing.push(row);
+        })
+        full_recent_hist = thing;
+        cb();
+    })
+}
 
 function updateObjectCache(cb){
     _dp._get_table_as_list('objects', function(data, err){
@@ -124,34 +140,20 @@ var recent_hist = []
 var full_recent_hist = []
 var base_sn = 0;
 
-///Creates a fully-hydrated "most current frame" of the array based on a passed in set of Moves,
-///and updates the local list of Movesets and the local list of frames.
 function applytoRealtimeStack(packet){
-    var newid = UUID.v4();
-    packet.id = newid
-    packet.timestamp = moment().tz('America/Chicago').format('MM/DD/YYYY h:mm a')
-    full_recent_hist.unshift(hydrateDelta(packet));
-
-    var delta_applied = JSON.parse(JSON.stringify(latestconfiguration)); //shitty copy
-    delta_applied.id = newid
-    delta_applied.timestamp = moment().tz('America/Chicago').format('MM/DD/YYYY h:mm a')
-
-    _.each(packet.moves, function(move){
-        var _prev = JSON.parse(JSON.stringify(delta_applied[move.to])); //shitty copy
-        var _curr = JSON.parse(JSON.stringify(move.item));
-        delta_applied[move.from] = _prev; //swap from
-        delta_applied[move.to] = _curr; //swap to
-    })
-    
-    latestconfiguration = delta_applied;
-    //TODO: try without that stringify call, not sure if needed
-    //This is basically a persistence thing, right?
+    console.log(packet)
+    latestconfiguration = {'id':packet.id, 'board':[5,4], 'timestamp': moment().tz('America/Chicago').format('MM/DD/YYYY h:mm a')};
+    for(var k in packet.locations) latestconfiguration[k] = packet.locations[k];
+    console.log(latestconfiguration)
     _dp._update_item({'id':_dp.mainrecord, 'key':00, 'location':_dp.settingstable, 'body':{"data":JSON.stringify([latestconfiguration]), "name":"current state", "id":_dp.mainrecord}}, function(msg, err){
         if(err){ 
             console.log(err)
         }
         console.log(msg)
     }, true)
+    updateChangeOrderCache(function(){
+        console.log('updated COs from DB');
+    })
 }
 
 //given an object with a list of properties that may or may not have a record id as the value,
@@ -207,15 +209,16 @@ function uploadData(data, cb){
         updating = true;
         itemid = data['existing_id'];
     }
+
     TidyData(data, function(packet){
         if(updating){
             _dp._update_item({key: itemid, body: packet, policy: 'public-read'}, function(reply){
-                cb(reply)
+                cb(itemid, reply)
             })
         }
         else{
             _dp._write_item({key: itemid, body: packet, policy: 'public-read'}, function(reply){
-                cb(reply)
+                cb(itemid, reply)
             })
         }
     });
@@ -255,6 +258,7 @@ function TidyData(query, callback){
                 }
             }
         }
+        packet.locations = JSON.stringify(packet.locations)
         callback(packet);
     }
 
